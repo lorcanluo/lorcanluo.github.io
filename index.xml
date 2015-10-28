@@ -2,28 +2,28 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>骆二胖的技术博客</title>
-    <link>http://localhost:1313/</link>
+    <link>http://luocan.cc/</link>
     <description>Recent content on 骆二胖的技术博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Wed, 28 Oct 2015 15:52:23 +0800</lastBuildDate>
-    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="http://luocan.cc/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Android界面优化</title>
-      <link>http://localhost:1313/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/</link>
+      <link>http://luocan.cc/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/</link>
       <pubDate>Wed, 28 Oct 2015 15:52:23 +0800</pubDate>
       
-      <guid>http://localhost:1313/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/</guid>
+      <guid>http://luocan.cc/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/</guid>
       <description></description>
     </item>
     
     <item>
       <title>About</title>
-      <link>http://localhost:1313/about/</link>
+      <link>http://luocan.cc/about/</link>
       <pubDate>Sat, 20 Jun 2015 14:02:37 +0200</pubDate>
       
-      <guid>http://localhost:1313/about/</guid>
+      <guid>http://luocan.cc/about/</guid>
       <description>
 
 &lt;p&gt;骆灿，自称二胖，程序猿一枚，贵州人，2008年四川大学通信工程毕业.&lt;/p&gt;
