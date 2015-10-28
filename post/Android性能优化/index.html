@@ -7,21 +7,21 @@
 		<meta name="author" content="程序猿骆二胖">
 		<meta name="description" content="骆二胖的技术博客，年纪大了，用来记点心得，发点牢骚...">
 		<meta name="generator" content="Hugo 0.14" />
-		<title>Android界面优化 &middot; 骆二胖的技术博客</title>
-		<link rel="shortcut icon" href="http://lorcanluo.github.io/images/favicon.ico">
-		<link rel="stylesheet" href="http://lorcanluo.github.io/css/style.css">
-		<link rel="stylesheet" href="http://lorcanluo.github.io/css/highlight.css">
-		<link href="http://lorcanluo.github.io/index.xml" rel="alternate" type="application/rss+xml" title="骆二胖的技术博客" />
+		<title> &middot; 骆二胖的技术博客</title>
+		<link rel="shortcut icon" href="http://localhost:1313/images/favicon.ico">
+		<link rel="stylesheet" href="http://localhost:1313/css/style.css">
+		<link rel="stylesheet" href="http://localhost:1313/css/highlight.css">
+		<link href="http://localhost:1313/index.xml" rel="alternate" type="application/rss+xml" title="骆二胖的技术博客" />
 	</head>
     <body>
        <nav class="main-nav">
 	
 	
-		<a href='http://lorcanluo.github.io/'> <span class="arrow">←</span>主页</a>
+		<a href='http://localhost:1313/'> <span class="arrow">←</span>主页</a>
 	
 
 	
-		<a href='http://lorcanluo.github.io/about'>关于</a>
+		<a href='http://localhost:1313/about'>关于</a>
 	
 
 	
@@ -30,8 +30,8 @@
         <section id="wrapper">
             <article class="post">
                 <header>
-                    <h1>Android界面优化</h1>
-                    <h2 class="headline">October 28, 2015</h2>
+                    <h1></h1>
+                    <h2 class="headline">January 1, 0001</h2>
                 </header>
                 <section id="post-body">
                     <p>#Android界面优化
@@ -106,8 +106,9 @@ Include就是可以重用布局，具体对层级没啥优化效果，只是可�
 
 <p>####为什么GC会引起卡顿了？</p>
 
-<p>除了速度差异之外，执行GC操作的时候，<strong><em>任何线程的任何操作都会需要暂停，等待GC操作完成之后，其他操作才能够继续运行</em></strong>。
-通常来说，单个的GC并不会占用太多时间，但是大量不停的GC操作则会显著占用帧间隔时间(16ms)。<strong><em>如果在帧间隔时间里面做了过多的GC操作，那么自然其他类似计算，渲染等操作的可用时间就变得少了。</em></strong></p>
+<p>除了速度差异之外，执行GC操作的时候，<strong><em>任何线程的任何操作都会需要暂停，等待GC操作完成之后，其他操作才能够继续运行</em></strong>。</p>
+
+<p>通常来说，单个的GC并不会占用太多时间，但是大量不停的GC操作则会显著占用帧间隔时间(16ms)。<strong><em>如果在帧间隔时间里面做了过多的GC操作，那么自然其他类似计算，渲染等操作的可用时间就变得少了。</em></strong></p>
 
 <p>#####导致GC频繁的原因：
 <strong>Memory Churn内存抖动</strong>，内存抖动是因为大量的对象被创建又在短时间内马上被释放。</p>
@@ -139,14 +140,14 @@ Include就是可以重用布局，具体对层级没啥优化效果，只是可�
             </article>
             <footer id="post-meta" class="clearfix">
                 
-                        <img class="avatar" src="http://lorcanluo.github.io/images/avatar.png">
+                        <img class="avatar" src="http://localhost:1313/images/avatar.png">
                         <div>
                             <span class="dark">程序猿骆二胖</span>
                             <span>我只是一个程序猿二胖.</span>
                         </div>
                     
                 <section id="sharing">
-                    <a class="twitter" href="https://twitter.com/intent/tweet?text=http%3a%2f%2florcanluo.github.io%2fpost%2fAndroid%25E7%2595%258C%25E9%259D%25A2%25E4%25BC%2598%25E5%258C%2596%2f - Android%e7%95%8c%e9%9d%a2%e4%bc%98%e5%8c%96 "><span class="icon-twitter"> Tweet</span></a>
+                    <a class="twitter" href="https://twitter.com/intent/tweet?text=http%3a%2f%2flocalhost%3a1313%2fpost%2fAndroid%25E6%2580%25A7%25E8%2583%25BD%25E4%25BC%2598%25E5%258C%2596%2f -  "><span class="icon-twitter"> Tweet</span></a>
 
 <a class="facebook" href="#" onclick="
     window.open(
@@ -181,6 +182,13 @@ Include就是可以重用布局，具体对层级没啥优化效果，只是可�
     
     
         
+        <li>
+            <a href="http://localhost:1313/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/">Android界面优化<aside class="dates">Oct 28</aside></a>
+        </li>
+        
+   
+    
+        
    
     
         
@@ -194,10 +202,13 @@ Include就是可以重用布局，具体对层级没啥优化效果，只是可�
         </section>
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
-<script src="http://lorcanluo.github.io/js/main.js"></script>
-<script src="http://lorcanluo.github.io/js/highlight.js"></script>
+<script src="http://localhost:1313/js/main.js"></script>
+<script src="http://localhost:1313/js/highlight.js"></script>
 <script>hljs.initHighlightingOnLoad();</script>
 
 
-    </body>
+    <script data-no-instant>document.write('<script src="http://'
+        + (location.host || 'localhost').split(':')[0]
+		+ ':1313/livereload.js?mindelay=10"></'
+        + 'script>')</script></body>
 </html>
