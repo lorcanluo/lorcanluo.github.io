@@ -34,21 +34,26 @@
                     <h2 class="headline">October 28, 2015</h2>
                 </header>
                 <section id="post-body">
-                    <p>#Android界面优化
-工作几年，遇到需要页面优化的地方不少，在刚开始学写代码的时候大多数人只为了方便实现，而很少考虑效率问题，等到发现问题的时候回来修改，就会变得十分麻烦了。</p>
+                    
+
+<h1 id="android界面优化:a833aff54ae97d9b891a1bf799bf08ba">Android界面优化</h1>
+
+<p>工作几年，遇到需要页面优化的地方不少，在刚开始学写代码的时候大多数人只为了方便实现，而很少考虑效率问题，等到发现问题的时候回来修改，就会变得十分麻烦了。</p>
 
 <p>该文总结了Google Io大会的一个效率方面的培训，和我自己的一些经验。</p>
 
-<p>##16毫秒原则
-<img src="https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/optimizeUi/optimize_16ms.png" alt="ui screenshot" />
+<h2 id="16毫秒原则:a833aff54ae97d9b891a1bf799bf08ba">16毫秒原则</h2>
+
+<p><img src="https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/optimizeUi/optimize_16ms.png" alt="ui screenshot" />
 Android系统每隔<strong>16ms</strong>发出<strong>VSYNC</strong>信号，触发对UI进行渲染， 如果每次渲染都成功，这样就能够达到流畅的画面所需要的<strong>60fps</strong>，为了能够实现<strong>60fps</strong>，这意味着程序的大多数操作都必须在<strong>16ms</strong>内完成。如图所示，如果你的操作都是在16ms内完成的，那么你的页面就是流畅的。</p>
 
 <p><img src="https://github.com/lorcanluo/myHugoProject/blob/master/myImage/optimizeUi/optimize_16ms2.png?raw=true" alt="ui screenshot" /></p>
 
 <p>看上图，如果你的某个操作花费时间是<strong>24ms</strong>，系统在得到<strong>VSYNC</strong>信号的时候就无法进行正常渲染，这样就发生了丢帧现象。那么用户在<strong>32ms</strong>内看到的会是同一帧画面。</p>
 
-<p>##什么原因会导致丢帧？
-上面说了产生卡顿的原理，但是实际工作中，我们有哪些原因会引起这种问题呢：</p>
+<h2 id="什么原因会导致丢帧:a833aff54ae97d9b891a1bf799bf08ba">什么原因会导致丢帧？</h2>
+
+<p>上面说了产生卡顿的原理，但是实际工作中，我们有哪些原因会引起这种问题呢：</p>
 
 <ul>
 <li>过度绘制：Layout 太复杂，UI重叠太多</li>
@@ -56,13 +61,15 @@ Android系统每隔<strong>16ms</strong>发出<strong>VSYNC</strong>信号，触
 <li>多线程处理不当，互锁产生</li>
 </ul>
 
-<p>###过度绘制
-<strong>Overdraw</strong>(过度绘制) 描述的是屏幕上的某个像素在同一帧的时间内被绘制了多次。在多层次的UI结构里面，如果不可见的UI也在做绘制的操作，这就会导致某些像素区域被绘制了多次。这就浪费大量的CPU以及GPU资源。见下图：</p>
+<h3 id="过度绘制:a833aff54ae97d9b891a1bf799bf08ba">过度绘制</h3>
+
+<p><strong>Overdraw</strong>(过度绘制) 描述的是屏幕上的某个像素在同一帧的时间内被绘制了多次。在多层次的UI结构里面，如果不可见的UI也在做绘制的操作，这就会导致某些像素区域被绘制了多次。这就浪费大量的CPU以及GPU资源。见下图：</p>
 
 <p><img src="https://github.com/lorcanluo/myHugoProject/blob/master/myImage/optimizeUi/optimize_overdraw.png?raw=true" alt="ui screenshot" /></p>
 
-<p>####调试OverDraw的办法
-方法1：Android开发者选项中打开<strong><em>调试GPU过度绘制</em></strong>，页面上就会显示出不同的颜色。</p>
+<h4 id="调试overdraw的办法:a833aff54ae97d9b891a1bf799bf08ba">调试OverDraw的办法</h4>
+
+<p>方法1：Android开发者选项中打开<strong><em>调试GPU过度绘制</em></strong>，页面上就会显示出不同的颜色。</p>
 
 <ul>
 <li>淡蓝色  表示只有一层 这是最好的情况</li>
@@ -77,8 +84,9 @@ Android系统每隔<strong>16ms</strong>发出<strong>VSYNC</strong>信号，触
 
 <p><img src="https://github.com/lorcanluo/myHugoProject/blob/master/myImage/optimizeUi/optimize_hierarchy.png?raw=true" alt="ui screenshot" /></p>
 
-<p>####常用的一些Android布局标签
-我们还可以用一些Android提供的布局标签去优化我们的布局，有三个：</p>
+<h4 id="常用的一些android布局标签:a833aff54ae97d9b891a1bf799bf08ba">常用的一些Android布局标签</h4>
+
+<p>我们还可以用一些Android提供的布局标签去优化我们的布局，有三个：</p>
 
 <ol>
 <li><strong><em>Mergy</em></strong></li>
@@ -86,31 +94,36 @@ Android系统每隔<strong>16ms</strong>发出<strong>VSYNC</strong>信号，触
 <li><strong><em>Include</em></strong></li>
 </ol>
 
-<p>#####Mergy
-Mergy标签的主要目的就是用来减少层级使用的，具体可以参考<a href="http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-by.html">http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-by.html</a></p>
+<h5 id="mergy:a833aff54ae97d9b891a1bf799bf08ba">Mergy</h5>
 
-<p>####ViewStup
-ViewStup标签最大的优点是当你需要时才会加载，使用他并不会影响UI初始化时的性能。各种不常用的布局想进度条、显示错误消息等可以使用标签，以减少内存使用量，加快渲染速度。具体可以参考<a href="http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-with.html">http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-with.html</a></p>
+<p>Mergy标签的主要目的就是用来减少层级使用的，具体可以参考<a href="http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-by.html">http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-by.html</a></p>
 
-<p>####Include
-Include就是可以重用布局，具体对层级没啥优化效果，只是可以减少一部分重复代码。</p>
+<h4 id="viewstup:a833aff54ae97d9b891a1bf799bf08ba">ViewStup</h4>
+
+<p>ViewStup标签最大的优点是当你需要时才会加载，使用他并不会影响UI初始化时的性能。各种不常用的布局想进度条、显示错误消息等可以使用标签，以减少内存使用量，加快渲染速度。具体可以参考<a href="http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-with.html">http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-with.html</a></p>
+
+<h4 id="include:a833aff54ae97d9b891a1bf799bf08ba">Include</h4>
+
+<p>Include就是可以重用布局，具体对层级没啥优化效果，只是可以减少一部分重复代码。</p>
 
 <p>我写了Mergy和ViewStup的一个例子放在我的GitHub上，大家可以使用Hierarchy View 去观察布局的变化。 <a href="https://github.com/lorcanluo/trainingOptimizingUI">Samples-&gt;</a></p>
 
-<p>###内存问题-GC
-虽然Android有自动管理内存的机制，但是对内存的不恰当使用仍然容易引起严重的性能问题。<strong><em>在同一帧里面创建过多的对象是件需要特别引起注意的事情。</em></strong></p>
+<h3 id="内存问题-gc:a833aff54ae97d9b891a1bf799bf08ba">内存问题-GC</h3>
+
+<p>虽然Android有自动管理内存的机制，但是对内存的不恰当使用仍然容易引起严重的性能问题。<strong><em>在同一帧里面创建过多的对象是件需要特别引起注意的事情。</em></strong></p>
 
 <p>Android系统里面有一个Generational Heap Memory的模型，系统会根据内存中不同 的内存数据类型分别执行不同的GC操作。例如，最近刚分配的对象会放在Young Generation区域，这个区域的对象通常都是会快速被创建并且很快被销毁回收的，同时这个区域的GC操作速度也是比Old Generation区域的GC操作速度更快的。模型如图：</p>
 
 <p><img src="https://github.com/lorcanluo/myHugoProject/blob/master/myImage/optimizeUi/optimize_memory.png?raw=true" alt="ui screenshot" /></p>
 
-<p>####为什么GC会引起卡顿了？</p>
+<h4 id="为什么gc会引起卡顿了:a833aff54ae97d9b891a1bf799bf08ba">为什么GC会引起卡顿了？</h4>
 
 <p>除了速度差异之外，执行GC操作的时候，<strong><em>任何线程的任何操作都会需要暂停，等待GC操作完成之后，其他操作才能够继续运行</em></strong>。
 通常来说，单个的GC并不会占用太多时间，但是大量不停的GC操作则会显著占用帧间隔时间(16ms)。<strong><em>如果在帧间隔时间里面做了过多的GC操作，那么自然其他类似计算，渲染等操作的可用时间就变得少了。</em></strong></p>
 
-<p>#####导致GC频繁的原因：
-<strong>Memory Churn内存抖动</strong>，内存抖动是因为大量的对象被创建又在短时间内马上被释放。</p>
+<h5 id="导致gc频繁的原因:a833aff54ae97d9b891a1bf799bf08ba">导致GC频繁的原因：</h5>
+
+<p><strong>Memory Churn内存抖动</strong>，内存抖动是因为大量的对象被创建又在短时间内马上被释放。</p>
 
 <p>瞬间产生大量的对象会严重占用Young Generation的内存区域，当达到阀值，剩余空间不够的时候，也会触发GC。即使每次分配的对象占用了很少的内存，但是他们叠加在一起会增加 Heap的压力，从而触发更多其他类型的GC。这个操作有可能会影响到帧率，并使得用户感知到性能问题。</p>
 
@@ -122,7 +135,7 @@ Include就是可以重用布局，具体对层级没啥优化效果，只是可�
 
 <p>如果你看到图中的现象那么你就需要注意查看你得代码是否有问题了。</p>
 
-<p>####内存泄露</p>
+<h4 id="内存泄露:a833aff54ae97d9b891a1bf799bf08ba">内存泄露</h4>
 
 <p><strong>内存泄漏指的是那些程序不再使用的对象无法被GC识别，这样就导致这个对象一直留在内存当中，占用了宝贵的内存空间</strong>。显然，这还使得每级Generation的内存区域可用空间变小，GC就会更容易被触发，从而引起性能问题。</p>
 

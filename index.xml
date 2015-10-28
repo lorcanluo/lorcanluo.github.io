@@ -15,21 +15,26 @@
       <pubDate>Wed, 28 Oct 2015 15:52:23 +0800</pubDate>
       
       <guid>http://lorcanluo.github.io/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/</guid>
-      <description>&lt;p&gt;#Android界面优化
-工作几年，遇到需要页面优化的地方不少，在刚开始学写代码的时候大多数人只为了方便实现，而很少考虑效率问题，等到发现问题的时候回来修改，就会变得十分麻烦了。&lt;/p&gt;
+      <description>
+
+&lt;h1 id=&#34;android界面优化:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;Android界面优化&lt;/h1&gt;
+
+&lt;p&gt;工作几年，遇到需要页面优化的地方不少，在刚开始学写代码的时候大多数人只为了方便实现，而很少考虑效率问题，等到发现问题的时候回来修改，就会变得十分麻烦了。&lt;/p&gt;
 
 &lt;p&gt;该文总结了Google Io大会的一个效率方面的培训，和我自己的一些经验。&lt;/p&gt;
 
-&lt;p&gt;##16毫秒原则
-&lt;img src=&#34;https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/optimizeUi/optimize_16ms.png&#34; alt=&#34;ui screenshot&#34; /&gt;
+&lt;h2 id=&#34;16毫秒原则:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;16毫秒原则&lt;/h2&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/optimizeUi/optimize_16ms.png&#34; alt=&#34;ui screenshot&#34; /&gt;
 Android系统每隔&lt;strong&gt;16ms&lt;/strong&gt;发出&lt;strong&gt;VSYNC&lt;/strong&gt;信号，触发对UI进行渲染， 如果每次渲染都成功，这样就能够达到流畅的画面所需要的&lt;strong&gt;60fps&lt;/strong&gt;，为了能够实现&lt;strong&gt;60fps&lt;/strong&gt;，这意味着程序的大多数操作都必须在&lt;strong&gt;16ms&lt;/strong&gt;内完成。如图所示，如果你的操作都是在16ms内完成的，那么你的页面就是流畅的。&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://github.com/lorcanluo/myHugoProject/blob/master/myImage/optimizeUi/optimize_16ms2.png?raw=true&#34; alt=&#34;ui screenshot&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;看上图，如果你的某个操作花费时间是&lt;strong&gt;24ms&lt;/strong&gt;，系统在得到&lt;strong&gt;VSYNC&lt;/strong&gt;信号的时候就无法进行正常渲染，这样就发生了丢帧现象。那么用户在&lt;strong&gt;32ms&lt;/strong&gt;内看到的会是同一帧画面。&lt;/p&gt;
 
-&lt;p&gt;##什么原因会导致丢帧？
-上面说了产生卡顿的原理，但是实际工作中，我们有哪些原因会引起这种问题呢：&lt;/p&gt;
+&lt;h2 id=&#34;什么原因会导致丢帧:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;什么原因会导致丢帧？&lt;/h2&gt;
+
+&lt;p&gt;上面说了产生卡顿的原理，但是实际工作中，我们有哪些原因会引起这种问题呢：&lt;/p&gt;
 
 &lt;ul&gt;
 &lt;li&gt;过度绘制：Layout 太复杂，UI重叠太多&lt;/li&gt;
@@ -37,13 +42,15 @@ Android系统每隔&lt;strong&gt;16ms&lt;/strong&gt;发出&lt;strong&gt;VSYNC&lt
 &lt;li&gt;多线程处理不当，互锁产生&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;p&gt;###过度绘制
-&lt;strong&gt;Overdraw&lt;/strong&gt;(过度绘制) 描述的是屏幕上的某个像素在同一帧的时间内被绘制了多次。在多层次的UI结构里面，如果不可见的UI也在做绘制的操作，这就会导致某些像素区域被绘制了多次。这就浪费大量的CPU以及GPU资源。见下图：&lt;/p&gt;
+&lt;h3 id=&#34;过度绘制:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;过度绘制&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;Overdraw&lt;/strong&gt;(过度绘制) 描述的是屏幕上的某个像素在同一帧的时间内被绘制了多次。在多层次的UI结构里面，如果不可见的UI也在做绘制的操作，这就会导致某些像素区域被绘制了多次。这就浪费大量的CPU以及GPU资源。见下图：&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://github.com/lorcanluo/myHugoProject/blob/master/myImage/optimizeUi/optimize_overdraw.png?raw=true&#34; alt=&#34;ui screenshot&#34; /&gt;&lt;/p&gt;
 
-&lt;p&gt;####调试OverDraw的办法
-方法1：Android开发者选项中打开&lt;strong&gt;&lt;em&gt;调试GPU过度绘制&lt;/em&gt;&lt;/strong&gt;，页面上就会显示出不同的颜色。&lt;/p&gt;
+&lt;h4 id=&#34;调试overdraw的办法:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;调试OverDraw的办法&lt;/h4&gt;
+
+&lt;p&gt;方法1：Android开发者选项中打开&lt;strong&gt;&lt;em&gt;调试GPU过度绘制&lt;/em&gt;&lt;/strong&gt;，页面上就会显示出不同的颜色。&lt;/p&gt;
 
 &lt;ul&gt;
 &lt;li&gt;淡蓝色  表示只有一层 这是最好的情况&lt;/li&gt;
@@ -58,8 +65,9 @@ Android系统每隔&lt;strong&gt;16ms&lt;/strong&gt;发出&lt;strong&gt;VSYNC&lt
 
 &lt;p&gt;&lt;img src=&#34;https://github.com/lorcanluo/myHugoProject/blob/master/myImage/optimizeUi/optimize_hierarchy.png?raw=true&#34; alt=&#34;ui screenshot&#34; /&gt;&lt;/p&gt;
 
-&lt;p&gt;####常用的一些Android布局标签
-我们还可以用一些Android提供的布局标签去优化我们的布局，有三个：&lt;/p&gt;
+&lt;h4 id=&#34;常用的一些android布局标签:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;常用的一些Android布局标签&lt;/h4&gt;
+
+&lt;p&gt;我们还可以用一些Android提供的布局标签去优化我们的布局，有三个：&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;strong&gt;&lt;em&gt;Mergy&lt;/em&gt;&lt;/strong&gt;&lt;/li&gt;
@@ -67,31 +75,36 @@ Android系统每隔&lt;strong&gt;16ms&lt;/strong&gt;发出&lt;strong&gt;VSYNC&lt
 &lt;li&gt;&lt;strong&gt;&lt;em&gt;Include&lt;/em&gt;&lt;/strong&gt;&lt;/li&gt;
 &lt;/ol&gt;
 
-&lt;p&gt;#####Mergy
-Mergy标签的主要目的就是用来减少层级使用的，具体可以参考&lt;a href=&#34;http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-by.html&#34;&gt;http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-by.html&lt;/a&gt;&lt;/p&gt;
+&lt;h5 id=&#34;mergy:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;Mergy&lt;/h5&gt;
 
-&lt;p&gt;####ViewStup
-ViewStup标签最大的优点是当你需要时才会加载，使用他并不会影响UI初始化时的性能。各种不常用的布局想进度条、显示错误消息等可以使用标签，以减少内存使用量，加快渲染速度。具体可以参考&lt;a href=&#34;http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-with.html&#34;&gt;http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-with.html&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Mergy标签的主要目的就是用来减少层级使用的，具体可以参考&lt;a href=&#34;http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-by.html&#34;&gt;http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-by.html&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;####Include
-Include就是可以重用布局，具体对层级没啥优化效果，只是可以减少一部分重复代码。&lt;/p&gt;
+&lt;h4 id=&#34;viewstup:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;ViewStup&lt;/h4&gt;
+
+&lt;p&gt;ViewStup标签最大的优点是当你需要时才会加载，使用他并不会影响UI初始化时的性能。各种不常用的布局想进度条、显示错误消息等可以使用标签，以减少内存使用量，加快渲染速度。具体可以参考&lt;a href=&#34;http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-with.html&#34;&gt;http://android-developers.blogspot.jp/2009/03/android-layout-tricks-3-optimize-with.html&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;include:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;Include&lt;/h4&gt;
+
+&lt;p&gt;Include就是可以重用布局，具体对层级没啥优化效果，只是可以减少一部分重复代码。&lt;/p&gt;
 
 &lt;p&gt;我写了Mergy和ViewStup的一个例子放在我的GitHub上，大家可以使用Hierarchy View 去观察布局的变化。 &lt;a href=&#34;https://github.com/lorcanluo/trainingOptimizingUI&#34;&gt;Samples-&amp;gt;&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;###内存问题-GC
-虽然Android有自动管理内存的机制，但是对内存的不恰当使用仍然容易引起严重的性能问题。&lt;strong&gt;&lt;em&gt;在同一帧里面创建过多的对象是件需要特别引起注意的事情。&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&#34;内存问题-gc:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;内存问题-GC&lt;/h3&gt;
+
+&lt;p&gt;虽然Android有自动管理内存的机制，但是对内存的不恰当使用仍然容易引起严重的性能问题。&lt;strong&gt;&lt;em&gt;在同一帧里面创建过多的对象是件需要特别引起注意的事情。&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
 
 &lt;p&gt;Android系统里面有一个Generational Heap Memory的模型，系统会根据内存中不同 的内存数据类型分别执行不同的GC操作。例如，最近刚分配的对象会放在Young Generation区域，这个区域的对象通常都是会快速被创建并且很快被销毁回收的，同时这个区域的GC操作速度也是比Old Generation区域的GC操作速度更快的。模型如图：&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://github.com/lorcanluo/myHugoProject/blob/master/myImage/optimizeUi/optimize_memory.png?raw=true&#34; alt=&#34;ui screenshot&#34; /&gt;&lt;/p&gt;
 
-&lt;p&gt;####为什么GC会引起卡顿了？&lt;/p&gt;
+&lt;h4 id=&#34;为什么gc会引起卡顿了:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;为什么GC会引起卡顿了？&lt;/h4&gt;
 
 &lt;p&gt;除了速度差异之外，执行GC操作的时候，&lt;strong&gt;&lt;em&gt;任何线程的任何操作都会需要暂停，等待GC操作完成之后，其他操作才能够继续运行&lt;/em&gt;&lt;/strong&gt;。
 通常来说，单个的GC并不会占用太多时间，但是大量不停的GC操作则会显著占用帧间隔时间(16ms)。&lt;strong&gt;&lt;em&gt;如果在帧间隔时间里面做了过多的GC操作，那么自然其他类似计算，渲染等操作的可用时间就变得少了。&lt;/em&gt;&lt;/strong&gt;&lt;/p&gt;
 
-&lt;p&gt;#####导致GC频繁的原因：
-&lt;strong&gt;Memory Churn内存抖动&lt;/strong&gt;，内存抖动是因为大量的对象被创建又在短时间内马上被释放。&lt;/p&gt;
+&lt;h5 id=&#34;导致gc频繁的原因:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;导致GC频繁的原因：&lt;/h5&gt;
+
+&lt;p&gt;&lt;strong&gt;Memory Churn内存抖动&lt;/strong&gt;，内存抖动是因为大量的对象被创建又在短时间内马上被释放。&lt;/p&gt;
 
 &lt;p&gt;瞬间产生大量的对象会严重占用Young Generation的内存区域，当达到阀值，剩余空间不够的时候，也会触发GC。即使每次分配的对象占用了很少的内存，但是他们叠加在一起会增加 Heap的压力，从而触发更多其他类型的GC。这个操作有可能会影响到帧率，并使得用户感知到性能问题。&lt;/p&gt;
 
@@ -103,7 +116,7 @@ Include就是可以重用布局，具体对层级没啥优化效果，只是可�
 
 &lt;p&gt;如果你看到图中的现象那么你就需要注意查看你得代码是否有问题了。&lt;/p&gt;
 
-&lt;p&gt;####内存泄露&lt;/p&gt;
+&lt;h4 id=&#34;内存泄露:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;内存泄露&lt;/h4&gt;
 
 &lt;p&gt;&lt;strong&gt;内存泄漏指的是那些程序不再使用的对象无法被GC识别，这样就导致这个对象一直留在内存当中，占用了宝贵的内存空间&lt;/strong&gt;。显然，这还使得每级Generation的内存区域可用空间变小，GC就会更容易被触发，从而引起性能问题。&lt;/p&gt;
 
