@@ -6,8 +6,451 @@
     <description>Recent content in Posts on 骆二胖的技术博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 28 Oct 2015 15:52:23 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 28 Nov 2015 15:52:23 +0800</lastBuildDate>
     <atom:link href="http://lorcanluo.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>浅析ListView实现原理</title>
+      <link>http://lorcanluo.github.io/post/%E6%B5%85%E6%9E%90ListView%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</link>
+      <pubDate>Sat, 28 Nov 2015 15:52:23 +0800</pubDate>
+      
+      <guid>http://lorcanluo.github.io/post/%E6%B5%85%E6%9E%90ListView%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</guid>
+      <description>
+
+&lt;h1 id=&#34;浅析listview实现原理:6e1e1fe882909f94253528cb85e0a255&#34;&gt;浅析ListView实现原理&lt;/h1&gt;
+
+&lt;h3 id=&#34;为什么要使用getview-中的convertview:6e1e1fe882909f94253528cb85e0a255&#34;&gt;&amp;ndash;为什么要使用getview（）中的convertView&lt;/h3&gt;
+
+&lt;p&gt;2009的Google Io大会中有一个专门培训ListView使用的&lt;a href=&#34;https://www.youtube.com/watch?v=wDBM6wVEO70&#34;&gt;课程&lt;/a&gt;说到，使用ListView 最快最优化（Fast Way）的方式如下这段代码：
+&lt;strong&gt;Fast Way&lt;/strong&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;```
+public View getView(int position, View convertView, ViewGroup parent){
+    ViewHolder holder;
+
+    if (convertView == null) {
+        convertView = mInflater.inflate(R.layout.list_item, parent, false);
+        holder = new ViewHolder();
+        holder.text = (TextView)convertView.findViewById(R.id.text);
+        holder.icon = (ImageView)convertView.findViewById(R.id.icon);
+
+        convertView.setTag(holder);
+    } else {
+        holder = (ViewHolder) convertView.getTag();
+    }
+
+    holder.text.setText(DATA[position]);
+    holder.icon.setImageBitmap(Icons[position]);
+
+    return convertView;
+}
+
+public static class ViewHolder{
+    TextView text;
+    ImageView icon;
+}
+
+```
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;当时好奇为什么要使用 covertView ， 所以结合源码看了下ListView的实现原理，几年过去了，已经忘的差不多了，最近整理一下，为什么我们在代码中要这么使用ListView？covertView又是什么东东？&lt;/p&gt;
+
+&lt;h2 id=&#34;为什么要使用covertview:6e1e1fe882909f94253528cb85e0a255&#34;&gt;为什么要使用covertView？&lt;/h2&gt;
+
+&lt;p&gt;大家都知道，如果从网络，或者本地获取到了数据，我们通过调用&lt;strong&gt;adapter.notifyDataSetChanaged()&lt;/strong&gt;来通知ListView数据已经发生改变，那么ListView就会把我们的数据更新到页面。我们将从这个方法看起，这个事件是怎么通知到ListView的？打开BaseAdapter的源码，我们看到notifyDataSetChanaged（）的方法如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;   /**
+     * Notifies the attached observers that the underlying data has been changed
+     * and any View reflecting the data set should refresh itself.
+     */
+    public void notifyDataSetChanged() {
+        mDataSetObservable.notifyChanged();
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里调用了一个观察者模式的通知方法，那么你继续跟踪下去，将会在AbsListView中发现这个Observer的定义（注意这里有几个继承关系，所以你可能不是那么好找）：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class AdapterDataSetObserver extends DataSetObserver {
+
+        private Parcelable mInstanceState = null;
+
+        @Override
+        public void onChanged() {
+            mDataChanged = true;
+            mOldItemCount = mItemCount;
+            mItemCount = getAdapter().getCount();
+
+            // Detect the case where a cursor that was previously invalidated has
+            // been repopulated with new data.
+            if (AdapterView.this.getAdapter().hasStableIds() &amp;amp;&amp;amp; mInstanceState != null
+                    &amp;amp;&amp;amp; mOldItemCount == 0 &amp;amp;&amp;amp; mItemCount &amp;gt; 0) {
+                AdapterView.this.onRestoreInstanceState(mInstanceState);
+                mInstanceState = null;
+            } else {
+                rememberSyncState();
+            }
+            checkFocus();
+            requestLayout();        //这里调用了requesetLayout 方法，那么ListView的绘制过程就开始了
+        }
+
+        ...
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;ViewGroup的绘制过程，大慨有三个阶段，onMeasure，onLayout, onDraw, onMeasuer阶段中，各个子View将会计计算自己在父View中占用的宽高， 父View通过测量阶段获取到的宽高信息，负责把子View放到合适的位置，具体的过程不在这里详谈，我们从ListView的Layout事件看起，ListView是继承至AbsListView，AbsListView onLayout()会调用一个方法叫layoutChildren（）这也是一个抽象方法，ListView实现了这个方法，下面我们将截取一段代码来分析：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; @Override
+ protected void layoutChildren() {
+        
+        ...省略的代码...
+        
+        try {
+       
+           ...省略的代码...
+         
+            boolean dataChanged = mDataChanged;
+            if (dataChanged) {
+                handleDataChanged();       //数据变化的处理，这里决定了mLayoutMode
+            }
+
+            // Handle the empty set by removing all views that are visible
+            // and calling it a day
+            //留这段代码在这里，是因为这是一个ListView很少见的crash，平时开发过程可能不会现，
+            //上线以后就会出现偶发的crash，其实记住一点就好，如果Adapter中的数据发生了改变,就必须调用notifiyDateSetChangaed，
+            //如果不调用，这个crash就会出现，我以前在环信的SDK中也发现过这问题
+            if (mItemCount == 0) {
+                resetList();
+                invokeOnItemScrollListener();
+                return;
+            } else if (mItemCount != mAdapter.getCount()) {
+                throw new IllegalStateException(&amp;quot;The content of the adapter has changed but &amp;quot;
+                        + &amp;quot;ListView did not receive a notification. Make sure the content of &amp;quot;
+                        + &amp;quot;your adapter is not modified from a background thread, but only from &amp;quot;
+                        + &amp;quot;the UI thread. Make sure your adapter calls notifyDataSetChanged() &amp;quot;
+                        + &amp;quot;when its content changes. [in ListView(&amp;quot; + getId() + &amp;quot;, &amp;quot; + getClass()
+                        + &amp;quot;) with Adapter(&amp;quot; + mAdapter.getClass() + &amp;quot;)]&amp;quot;);
+            }
+
+
+
+            /*************重点来了******************/
+            //这里如果数据发生了改变，将把所有现在的child放到scrapView中，
+            //如果数据没有发生改变，将把所有现在的child放到activeViews中，
+            //RecyCleBin是什么鬼？scrapView是什么鬼？activieViews又是什么鬼？
+
+            // Pull all children into the RecycleBin.
+            // These views will be reused if possible
+            final int firstPosition = mFirstPosition;
+            final RecycleBin recycleBin = mRecycler;
+            if (dataChanged) {
+                for (int i = 0; i &amp;lt; childCount; i++) {
+                    recycleBin.addScrapView(getChildAt(i), firstPosition+i);
+                }
+            } else {
+                recycleBin.fillActiveViews(childCount, firstPosition);
+            }
+
+            // Clear out old views
+            detachAllViewsFromParent();
+            recycleBin.removeSkippedScrap();
+
+            //这里开始把子View加到ListView中，好多种模式，具体我没看，下面会选fillUp这个函数来分析。
+            switch (mLayoutMode) {
+            case LAYOUT_SET_SELECTION:
+                if (newSel != null) {
+                    sel = fillFromSelection(newSel.getTop(), childrenTop, childrenBottom);
+                } else {
+                    sel = fillFromMiddle(childrenTop, childrenBottom);
+                }
+                break;
+            case LAYOUT_SYNC:
+                sel = fillSpecific(mSyncPosition, mSpecificTop);
+                break;
+            case LAYOUT_FORCE_BOTTOM:
+                sel = fillUp(mItemCount - 1, childrenBottom);
+                adjustViewsUpOrDown();
+                break;
+            case LAYOUT_FORCE_TOP:
+                mFirstPosition = 0;
+                sel = fillFromTop(childrenTop);
+                adjustViewsUpOrDown();
+                break;
+            case LAYOUT_SPECIFIC:
+                sel = fillSpecific(reconcileSelectedPosition(), mSpecificTop);
+                break;
+            case LAYOUT_MOVE_SELECTION:
+                sel = moveSelection(oldSel, newSel, delta, childrenTop, childrenBottom);
+                break;
+            default:
+                if (childCount == 0) {
+                    if (!mStackFromBottom) {
+                        final int position = lookForSelectablePosition(0, true);
+                        setSelectedPositionInt(position);
+                        sel = fillFromTop(childrenTop);
+                    } else {
+                        final int position = lookForSelectablePosition(mItemCount - 1, false);
+                        setSelectedPositionInt(position);
+                        sel = fillUp(mItemCount - 1, childrenBottom);
+                    }
+                } else {
+                    if (mSelectedPosition &amp;gt;= 0 &amp;amp;&amp;amp; mSelectedPosition &amp;lt; mItemCount) {
+                        sel = fillSpecific(mSelectedPosition,
+                                oldSel == null ? childrenTop : oldSel.getTop());
+                    } else if (mFirstPosition &amp;lt; mItemCount) {
+                        sel = fillSpecific(mFirstPosition,
+                                oldFirst == null ? childrenTop : oldFirst.getTop());
+                    } else {
+                        sel = fillSpecific(0, childrenTop);
+                    }
+                }
+                break;
+            }
+
+            // Flush any cached views that did not get reused above
+            recycleBin.scrapActiveViews();
+
+            ...省略的代码...
+            
+        } finally {
+            if (!blockLayoutRequests) {
+                mBlockLayoutRequests = false;
+            }
+        }
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面出现了RecycleBin， ScrapView，ActiveView，这是什么东西？我们打开RecycleBin的源码看一看。&lt;/p&gt;
+
+&lt;h2 id=&#34;recyclebin:6e1e1fe882909f94253528cb85e0a255&#34;&gt;RecycleBin&lt;/h2&gt;
+
+&lt;p&gt;源码如下:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;   /**
+     * The RecycleBin facilitates reuse of views across layouts. The RecycleBin has two levels of
+     * storage: ActiveViews and ScrapViews. ActiveViews are those views which were onscreen at the
+     * start of a layout. By construction, they are displaying current information. At the end of
+     * layout, all views in ActiveViews are demoted to ScrapViews. ScrapViews are old views that
+     * could potentially be used by the adapter to avoid allocating views unnecessarily.
+     *
+     * @see android.widget.AbsListView#setRecyclerListener(android.widget.AbsListView.RecyclerListener)
+     * @see android.widget.AbsListView.RecyclerListener
+     */
+    class RecycleBin {
+        private RecyclerListener mRecyclerListener;
+
+        /**
+         * The position of the first view stored in mActiveViews.
+         */
+        private int mFirstActivePosition;
+
+        /**
+         * Views that were on screen at the start of layout. This array is populated at the start of
+         * layout, and at the end of layout all view in mActiveViews are moved to mScrapViews.
+         * Views in mActiveViews represent a contiguous range of Views, with position of the first
+         * view store in mFirstActivePosition.
+         */
+        private View[] mActiveViews = new View[0];
+
+        /**
+         * Unsorted views that can be used by the adapter as a convert view.
+         */
+        private ArrayList&amp;lt;View&amp;gt;[] mScrapViews;
+
+        private int mViewTypeCount;
+
+        private ArrayList&amp;lt;View&amp;gt; mCurrentScrap;
+
+        private ArrayList&amp;lt;View&amp;gt; mSkippedScrap;
+
+        private SparseArray&amp;lt;View&amp;gt; mTransientStateViews;
+        private LongSparseArray&amp;lt;View&amp;gt; mTransientStateViewsById;
+        
+        
+        ....省略的代码.....
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面说的很清楚，RecycleBin的作用是帮助布局中的View的重用，它存储了两种类型的View：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;mActiveViews  可以理解为现在显示在屏幕上的View&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;mScrapViews&lt;/strong&gt;   我们终于找到了，这就是传回getView中covertView的来源，上面的作用也说的很清楚了，避免不必要的分配Views，优化性能。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Ok，已经找到根本原因了，那么ListView又是在什么时候调用的getView方法了，上面说了我们将从fillUp方法看起：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; /**
+     * Fills the list from pos up to the top of the list view.
+     *
+     * @param pos The first position to put in the list
+     *
+     * @param nextBottom The location where the bottom of the item associated
+     *        with pos should be drawn
+     *
+     * @return The view that is currently selected
+     */
+    private View fillUp(int pos, int nextBottom) {
+        View selectedView = null;
+
+        int end = 0;
+        if ((mGroupFlags &amp;amp; CLIP_TO_PADDING_MASK) == CLIP_TO_PADDING_MASK) {
+            end = mListPadding.top;
+        }
+
+        while (nextBottom &amp;gt; end &amp;amp;&amp;amp; pos &amp;gt;= 0) {
+            // is this the selected item?
+            boolean selected = pos == mSelectedPosition;
+            View child = makeAndAddView(pos, nextBottom, false, mListPadding.left, selected);
+            nextBottom = child.getTop() - mDividerHeight;
+            if (selected) {
+                selectedView = child;
+            }
+            pos--;
+        }
+
+        mFirstPosition = pos + 1;
+        setVisibleRangeHint(mFirstPosition, mFirstPosition + getChildCount() - 1);
+        return selectedView;
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在这段代码中，又看到了makeAndAddView，该方法就是把View加到ListView中最终调用的方法，我们来看代码:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+    /**
+     * Obtain the view and add it to our list of children. The view can be made
+     * fresh, converted from an unused view, or used as is if it was in the
+     * recycle bin.
+     *
+     * @param position Logical position in the list
+     * @param y Top or bottom edge of the view to add
+     * @param flow If flow is true, align top edge to y. If false, align bottom
+     *        edge to y.
+     * @param childrenLeft Left edge where children should be positioned
+     * @param selected Is this position selected?
+     * @return View that was added
+     */
+    private View makeAndAddView(int position, int y, boolean flow, int childrenLeft,
+            boolean selected) {
+        View child;
+
+        //如果数据没有变化，直接去ActiveView中拿，这是最快的。
+        if (!mDataChanged) {
+            // Try to use an existing view for this position
+            child = mRecycler.getActiveView(position);
+            if (child != null) {
+                // Found it -- we&#39;re using an existing child
+                // This just needs to be positioned
+                setupChild(child, position, y, flow, childrenLeft, selected, true);
+
+                return child;
+            }
+        }
+
+        //如果数据变化了，新建一个View，或则如果可能的话去ScrapView中拿一个缓存。
+        // Make a new view for this position, or convert an unused view if possible
+        child = obtainView(position, mIsScrap);
+
+
+        //这个方法负责，把View放到ListView中合适的位置，具体就不看代码了，有兴趣自己去看源码
+        // This needs to be positioned and measured
+        setupChild(child, position, y, flow, childrenLeft, selected, mIsScrap[0]);
+
+        return child;
+    }
+    
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;那么我们只有接着看obtainView,该方法中就调用了getView方法，注意看：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;   /**
+     * Get a view and have it show the data associated with the specified
+     * position. This is called when we have already discovered that the view is
+     * not available for reuse in the recycle bin. The only choices left are
+     * converting an old view or making a new one.
+     *
+     * @param position The position to display
+     * @param isScrap Array of at least 1 boolean, the first entry will become true if
+     *                the returned view was taken from the scrap heap, false if otherwise.
+     *
+     * @return A view displaying the data associated with the specified position
+     */
+    View obtainView(int position, boolean[] isScrap) {
+        Trace.traceBegin(Trace.TRACE_TAG_VIEW, &amp;quot;obtainView&amp;quot;);
+
+        isScrap[0] = false;
+
+        //这个瞬时状态的View，看了下说明，大概就是item有动画等效果的，我们不关心这个
+        // Check whether we have a transient state view. Attempt to re-bind the
+        // data and discard the view if we fail.
+        final View transientView = mRecycler.getTransientStateView(position);
+        if (transientView != null) {
+            final LayoutParams params = (LayoutParams) transientView.getLayoutParams();
+
+            // If the view type hasn&#39;t changed, attempt to re-bind the data.
+            if (params.viewType == mAdapter.getItemViewType(position)) {
+                final View updatedView = mAdapter.getView(position, transientView, this);
+
+                // If we failed to re-bind the data, scrap the obtained view.
+                if (updatedView != transientView) {
+                    setItemViewLayoutParams(updatedView, position);
+                    mRecycler.addScrapView(updatedView, position);
+                }
+            }
+
+            // Scrap view implies temporary detachment.
+            isScrap[0] = true;
+            return transientView;
+        }
+
+        //看这里，我们先去哪一个scrapView
+        final View scrapView = mRecycler.getScrapView(position);
+        
+        //看到没，这里调用了getView方法，去初始化我们的covertView，知道covertView怎么来的吧。
+        final View child = mAdapter.getView(position, scrapView, this);
+        if (scrapView != null) {
+        
+            //如果不相等，这种情况就是我们covertView为null的情况
+            if (child != scrapView) {
+                // Failed to re-bind the data, return scrap to the heap.
+                mRecycler.addScrapView(scrapView, position);
+            } else {
+                isScrap[0] = true;
+                
+                //这个方法没有看到说明，大概就是绘制相关的
+                child.dispatchFinishTemporaryDetach();
+            }
+        }
+
+        if (mCacheColorHint != 0) {
+            child.setDrawingCacheBackgroundColor(mCacheColorHint);
+        }
+
+        if (child.getImportantForAccessibility() == IMPORTANT_FOR_ACCESSIBILITY_AUTO) {
+            child.setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_YES);
+        }
+
+        setItemViewLayoutParams(child, position);
+
+        if (AccessibilityManager.getInstance(mContext).isEnabled()) {
+            if (mAccessibilityDelegate == null) {
+                mAccessibilityDelegate = new ListItemAccessibilityDelegate();
+            }
+            if (child.getAccessibilityDelegate() == null) {
+                child.setAccessibilityDelegate(mAccessibilityDelegate);
+            }
+        }
+
+        Trace.traceEnd(Trace.TRACE_TAG_VIEW);
+
+        return child;
+    }
+    
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Ok，大概就这样，ListView个人觉得他的实现是Android中一个比较经典的东西，如果看懂这个了的话，还可以看touch事件分发，ViewGroup绘制原理，有兴趣的同学可以深入的去看一下源码，绝对受益匪浅.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Android界面优化</title>
