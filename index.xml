@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>骆二胖的技术博客</title>
+    <title>骆二胖的博客</title>
     <link>http://lorcanluo.github.io/</link>
-    <description>Recent content on 骆二胖的技术博客</description>
+    <description>Recent content on 骆二胖的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Sat, 28 Nov 2015 15:52:23 +0800</lastBuildDate>
@@ -16,10 +16,6 @@
       
       <guid>http://lorcanluo.github.io/post/%E6%B5%85%E6%9E%90ListView%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</guid>
       <description>
-
-&lt;h1 id=&#34;浅析listview实现原理:6e1e1fe882909f94253528cb85e0a255&#34;&gt;浅析ListView实现原理&lt;/h1&gt;
-
-&lt;h3 id=&#34;为什么要使用getview-中的convertview:6e1e1fe882909f94253528cb85e0a255&#34;&gt;&amp;ndash;为什么要使用getview（）中的convertView&lt;/h3&gt;
 
 &lt;p&gt;2009的Google Io大会中有一个专门培训ListView使用的&lt;a href=&#34;https://www.youtube.com/watch?v=wDBM6wVEO70&#34;&gt;课程&lt;/a&gt;说到，使用ListView 最快最优化（Fast Way）的方式如下这段代码：
 &lt;strong&gt;Fast Way&lt;/strong&gt;&lt;/p&gt;
@@ -403,7 +399,7 @@ public static class ViewHolder{
             return transientView;
         }
 
-        //看这里，我们先去哪一个scrapView
+        //看这里，我们先去缓存中取一个scrapView
         final View scrapView = mRecycler.getScrapView(position);
         
         //看到没，这里调用了getView方法，去初始化我们的covertView，知道covertView怎么来的吧。
@@ -459,8 +455,6 @@ public static class ViewHolder{
       
       <guid>http://lorcanluo.github.io/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/</guid>
       <description>
-
-&lt;h1 id=&#34;android界面优化:a833aff54ae97d9b891a1bf799bf08ba&#34;&gt;Android界面优化&lt;/h1&gt;
 
 &lt;p&gt;工作几年，遇到需要页面优化的地方不少，在刚开始学写代码的时候大多数人只为了方便实现，而很少考虑效率问题，等到发现问题的时候回来修改，就会变得十分麻烦了。&lt;/p&gt;
 
@@ -571,28 +565,6 @@ Android系统每隔&lt;strong&gt;16ms&lt;/strong&gt;发出&lt;strong&gt;VSYNC&lt
 &lt;/ol&gt;
 
 &lt;p&gt;你还可以使用&lt;strong&gt;&lt;em&gt;MAT&lt;/em&gt;&lt;/strong&gt;去分析你得代码等等，具体内存分析的问题下一次再来讨论。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>About</title>
-      <link>http://lorcanluo.github.io/about/</link>
-      <pubDate>Sat, 20 Jun 2015 14:02:37 +0200</pubDate>
-      
-      <guid>http://lorcanluo.github.io/about/</guid>
-      <description>
-
-&lt;p&gt;骆灿，自称二胖，程序猿一枚，贵州人，2008年四川大学通信工程毕业.&lt;/p&gt;
-
-&lt;p&gt;工作7年，热爱互联网&amp;hellip;..&lt;/p&gt;
-
-&lt;hr /&gt;
-
-&lt;h3 id=&#34;程序猿简介:d680e8a854a7cbad6d490c445cba2eba&#34;&gt;程序猿简介：&lt;/h3&gt;
-
-&lt;p&gt;熟悉JAVA，c/c++,从10年开始折腾Android应用开发，服务器后台技术有一定接触，&lt;/p&gt;
-
-&lt;p&gt;目前折腾Swift和IOS中，全栈工程师才是最终梦想&amp;hellip;&amp;hellip;&lt;/p&gt;
 </description>
     </item>
     
