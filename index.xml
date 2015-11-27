@@ -17,8 +17,9 @@
       <guid>http://lorcanluo.github.io/post/%E6%B5%85%E6%9E%90ListView%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/</guid>
       <description>
 
-&lt;p&gt;2009的Google Io大会中有一个专门培训ListView使用的&lt;a href=&#34;https://www.youtube.com/watch?v=wDBM6wVEO70&#34;&gt;课程&lt;/a&gt;说到，使用ListView 最快最优化（Fast Way）的方式如下这段代码：
-&lt;strong&gt;Fast Way&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;2009的Google Io大会中有一个专门培训ListView使用的&lt;a href=&#34;https://www.youtube.com/watch?v=wDBM6wVEO70&#34;&gt;课程&lt;/a&gt;说到，使用ListView 最快最优化（Fast Way）的方式如下这段代码：&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Fast Way&lt;/strong&gt;&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;```
 public View getView(int position, View convertView, ViewGroup parent){

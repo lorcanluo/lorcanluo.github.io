@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>谈谈源码中的SparseArray</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="generator" content="Hugo 0.14" />
+  <link href="" rel="alternate" type="application/rss+xml" title="骆二胖的博客" />
+  <link href="http://localhost:1313//css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://localhost:1313//css/hc.css" rel="stylesheet">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  
+    
+    </head>
+    <body>
+<div class="nav-toggle"><i class="fa fa-bars fa-2x"></i> Herring Cove </div>
+      <div id = "wrapper">
+
+
+<div class="navbar navbar-default" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a href="http://localhost:1313//"><p class="navbar-brand">骆二胖的博客</p></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+					
+					
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+
+       
+       <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+					<img src="" />
+          <li class="sidebar-brand"><a href="http://localhost:1313//"><h1 class="brand">骆二胖的博客</h1></a><h3></h3></li>
+          <hr />
+					
+          <hr />
+          <div id="social-wrapper">
+           
+           
+           
+           
+         </div>
+       </ul>
+     </div>
+
+
+
+     <div class="container">
+
+
+  <div id="article">
+   <div class="article-title">谈谈源码中的SparseArray</div>
+   <p class="meta"><small>&nbsp;<i class="fa fa-calendar-o"></i> 2015-11-27</small></p> <hr/>
+   <div class="post">
+     
+
+<p>在Andorid的源码和第三方库中，偶尔能看到该类，我们先来看一下官方文档的说明如下：</p>
+
+<blockquote>
+<p>SparseArray map integers to Objects.  Unlike a normal array of  Objects,there can be gaps in the indices.  It is intended to be more memory efficient than using a HashMap to map Integers to Objects, both because it avoids auto-boxing keys and its data structure doesn&rsquo;t rely on an extra entry object for each mapping.</p>
+</blockquote>
+
+<p>上面的意思是SparseArray 用来替代HashMap Int到Object的这种关系。 它设计的目的是为了比HashMap更加节省内存，这是因为：
+1. 它避免了键值的自动装箱
+2. 他的数据结构不需要依赖额外的对象来完成映射。</p>
+
+<blockquote>
+<p>Note that this container keeps its mappings in an array data structure,using a binary search to find keys.  The implementation is not intended to be appropriate for data structures that may contain large numbers of items.  It is generally slower than a traditional HashMap, since lookups require a binary search and adds and removes require inserting and deleting entries in the array.  For containers holding up to hundreds of items,the performance difference is not significant, less than 50%.</p>
+</blockquote>
+
+<p>上面说了，SparseArray通过二分查找键值，这种实现方式不太适合太多的item。通常情况他是比HashMap慢的，但是如果容器只有数百的item，这个性能损失不太重要，不超过50%。</p>
+
+<p>实际在Android环境中，我们的键值也很少有超过上千的，所以SparseArray我们能在项目中用到的地方还是不少，如果在Android Stuido出现一个黄色警告叫你替换的话，你就可以考虑替换了。因为对于Android 来说，内存往往比较重要一点。</p>
+
+<h2 id="稀疏数组:68a0a5bdd5b5422fc1df9e0944b74246">稀疏数组</h2>
+
+<p>下面我们分析SparseArray的实现方式，从字面意思上翻译过来就是稀疏数组，首先我们打开源码看一下SparseArray的结构是怎么样的：</p>
+
+<pre><code>public class SparseArray&lt;E&gt; implements Cloneable {
+    private static final Object DELETED = new Object();
+    private boolean mGarbage = false;
+
+    private int[] mKeys;
+    private Object[] mValues;
+    private int mSize;
+    
+    ........我是省略的代码哟..........   
+}
+</code></pre>
+
+<p>看的出代码中有一个 int[] mKeys 数组， 和一个 Object[] mValues 数组，这两个就是存放键值和对象的地方，mSize是我们存入了多少键值对。下面我们将要用一个非常土的办法来看看这个结构是怎么样的，我们写一段测试代码如下，断点调试。</p>
+
+<pre><code>1 SparseArray&lt;Object&gt; sparseArray = new SparseArray&lt;&gt;();
+2 sparseArray.put(1, &quot;11&quot;);
+3 sparseArray.put(8, &quot;13&quot;);
+4 sparseArray.put(4, &quot;12&quot;);
+5 sparseArray.put(0, &quot;30&quot;);
+</code></pre>
+
+<p>我们执行第二行代码以后：</p>
+
+<p><strong>mKey</strong>中的结构:    {1,0,0,0,0,0,0,0,0,0,0,0}  后面的0是初始化mKey的长度
+<strong>mValues</strong>中的结构: {&ldquo;11&rdquo;}<br />
+<strong>mSize</strong>: 1</p>
+
+<p>我们执行第三行代码以后：</p>
+
+<p><strong>mKey</strong>中的结构:    {1,8,0,0,0,0,0,0,0,0,0,0}  后面的0是初始化mKey的长度
+<strong>mValues</strong>中的结构: {&ldquo;11&rdquo;,&ldquo;13&rdquo;}<br />
+<strong>mSize</strong>: 2</p>
+
+<p>我们执行第三行代码以后：</p>
+
+<p><strong>mKey</strong>中的结构:    {1,4,8,0,0,0,0,0,0,0,0,0}  后面的0是初始化mKey的长度
+<strong>mValues</strong>中的结构: {&ldquo;11&rdquo;,&ldquo;12&rdquo;,&ldquo;13&rdquo;}<br />
+<strong>mSize</strong>: 3</p>
+
+<p>我们执行第三行代码以后：</p>
+
+<p><strong>mKey</strong>中的结构:    {0,1,4,8,0,0,0,0,0,0,0,0,0}  后面的0是初始化mKey的长度
+<strong>mValues</strong>中的结构: {&ldquo;30&rdquo;,&ldquo;11&rdquo;,&ldquo;12&rdquo;,&ldquo;13&rdquo;}<br />
+<strong>mSize</strong>: 4</p>
+
+<p>从以上的结构中我们可以判断出，如果我们想查找一个键值为4的key，那么首先第一步找到key对应在mKey数组中的index，那么对应的value就在对应mValues中的index位置。再仔细观察上面的mKey中的结构，你会发现mKey中的数字是递增的，那么这保证了我们就可以通过二分查找去找到某一个值在mkey中的位置。ok这个结构分析完毕之后，我们接下来看看，增，删，查，找功能。</p>
+
+<h2 id="add:68a0a5bdd5b5422fc1df9e0944b74246">ADD</h2>
+
+<pre><code>   /**
+     * Adds a mapping from the specified key to the specified value,
+     * replacing the previous mapping from the specified key if there
+     * was one.
+     */
+    public void put(int key, E value) {
+        //通过二分查找键值
+        int i = ContainerHelpers.binarySearch(mKeys, mSize, key);
+
+        //如果找到了 就直接替换
+        if (i &gt;= 0) {
+            mValues[i] = value;
+        } else {
+            //如果没有找到，这个返回的值就是没有找到的mid+1 那么再取反 正好是当前mKey的存有值      
+            //的下一个值，只能说好巧妙~~
+            i = ~i;  
+
+            if (i &lt; mSize &amp;&amp; mValues[i] == DELETED) {
+                mKeys[i] = key;
+                mValues[i] = value;
+                return;
+            }
+
+            if (mGarbage &amp;&amp; mSize &gt;= mKeys.length) {
+                gc();
+
+                // Search again because indices may have changed.
+                i = ~ContainerHelpers.binarySearch(mKeys, mSize, key);
+            }
+
+            //GrowingArrayUtils 这个源码看不到，google下源码，就是他会动态增加数组的size,    
+            //通过System.arraycopy 实现的，具体自己去google咯
+            mKeys = GrowingArrayUtils.insert(mKeys, mSize, i, key);
+            mValues = GrowingArrayUtils.insert(mValues, mSize, i, value);
+            mSize++;
+        }
+    }
+</code></pre>
+
+<h2 id="delete:68a0a5bdd5b5422fc1df9e0944b74246">Delete</h2>
+
+<pre><code>   /**
+     * Removes the mapping from the specified key, if there was any.
+     */
+    public void delete(int key) {
+    
+        //还是二分查找
+        int i = ContainerHelpers.binarySearch(mKeys, mSize, key);
+
+        //找到了删除
+        if (i &gt;= 0) {
+            if (mValues[i] != DELETED) {
+                mValues[i] = DELETED;
+                mGarbage = true;
+            }
+        }
+    }
+</code></pre>
+
+<h2 id="find:68a0a5bdd5b5422fc1df9e0944b74246">Find</h2>
+
+<pre><code>    /**
+     * Gets the Object mapped from the specified key, or the specified Object
+     * if no such mapping has been made.
+     */
+    @SuppressWarnings(&quot;unchecked&quot;)
+    public E get(int key, E valueIfKeyNotFound) {
+        //还是二分查找
+        int i = ContainerHelpers.binarySearch(mKeys, mSize, key);
+
+        if (i &lt; 0 || mValues[i] == DELETED) {
+            return valueIfKeyNotFound;
+        } else {
+            return (E) mValues[i];
+        }
+    }
+</code></pre>
+
+<p>看了以上的操作，都是通过二分查找来操作的，所以和HashMap相比， 性能还是有所损失的，最后看看GC的操作</p>
+
+<h2 id="gc:68a0a5bdd5b5422fc1df9e0944b74246">GC</h2>
+
+<pre><code> private void gc() {
+        // Log.e(&quot;SparseArray&quot;, &quot;gc start with &quot; + mSize);
+
+        int n = mSize;
+        int o = 0;
+        int[] keys = mKeys;
+        Object[] values = mValues;
+
+        //循环查找 找到了置空
+        for (int i = 0; i &lt; n; i++) {
+            Object val = values[i];
+
+            if (val != DELETED) {
+                if (i != o) {
+                    keys[o] = keys[i];
+                    values[o] = val;
+                    values[i] = null;
+                }
+
+                o++;
+            }
+        }
+
+        mGarbage = false;
+        mSize = o;
+
+        // Log.e(&quot;SparseArray&quot;, &quot;gc end with &quot; + mSize);
+    }
+
+</code></pre>
+
+<p>总结一下， 就是SpareArray 比HashMap更节约内存，但是性能不如HashMap，在Android系统这内存似金的年代，我们还是应该想尽各种办法去节约内存的。 SpareArray还有一个兄弟 叫LongSparsArray 实现原理也是一样的。</p>
+
+   </div>
+ </div>
+
+
+ <a href="https://twitter.com/share" class="twitter-share-button " data-size="small" data-count="none">Tweet</a>
+ <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+ <ul class="pager">
+      &nbsp;<li class="previous"><a href="http://localhost:1313/post/%E6%B5%85%E6%9E%90ListView%E5%AE%9E%E7%8E%B0%E5%8E%9F%E7%90%86/"> 浅析ListView实现原理</a></li>
+      &nbsp;<li class="next"><a href="http://localhost:1313/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/"> Android界面优化</a></li>
+</ul>
+
+
+
+    </ul>
+    </div>
+    <footer>
+
+        <p class="text-muted credit">&copy; . All rights reserved. </p>
+    </footer>
+ 
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/js/hc.js"></script>
+<script data-no-instant>document.write('<script src="http://'
+        + (location.host || 'localhost').split(':')[0]
+		+ ':1313/livereload.js?mindelay=10"></'
+        + 'script>')</script></body>
+
+</html>
+
