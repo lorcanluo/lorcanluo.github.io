@@ -71,9 +71,11 @@
 &lt;p&gt;对使用AlarmManager的App，6.0引入了两个新的方法：&lt;/p&gt;
 
 &lt;blockquote&gt;
-&lt;p&gt;setAndAllowWhileIdle()
-setExactAndAllowWhileIdle().
-但是就算加了这两个方法,每15分钟闹钟服务只能允许呼起一次&lt;/p&gt;
+&lt;p&gt;setAndAllowWhileIdle()&lt;/p&gt;
+
+&lt;p&gt;setExactAndAllowWhileIdle().&lt;/p&gt;
+
+&lt;p&gt;但是就算加了这两个方法,每15分钟闹钟服务只能允许呼起一次&lt;/p&gt;
 &lt;/blockquote&gt;
 
 &lt;p&gt;那么对于我们这种实时消息（IM）开发的将是一个噩耗，那么Google推荐的方式是使用&lt;strong&gt;GCM&lt;/strong&gt; ，我们木有啊，木有啊，所以我觉得6.0在国内暂时还需要一段时间。&lt;/p&gt;
