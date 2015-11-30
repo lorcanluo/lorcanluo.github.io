@@ -6,8 +6,146 @@
     <description>Recent content on 骆二胖的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Sat, 28 Nov 2015 15:52:23 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 30 Nov 2015 17:54:12 +0800</lastBuildDate>
     <atom:link href="http://lorcanluo.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>android6.0电源管理方式</title>
+      <link>http://lorcanluo.github.io/post/android6.0%E7%94%B5%E6%BA%90%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F/</link>
+      <pubDate>Mon, 30 Nov 2015 17:54:12 +0800</pubDate>
+      
+      <guid>http://lorcanluo.github.io/post/android6.0%E7%94%B5%E6%BA%90%E7%AE%A1%E7%90%86%E6%96%B9%E5%BC%8F/</guid>
+      <description>
+
+&lt;p&gt;从Android 6.0开始，Android引入了两种电源优化特性来延长电源使用时间。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Doze：休眠状态&lt;/li&gt;
+&lt;li&gt;App Standby：App 挂起&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;doze:ae9920511987a07389ba2d8a27b5e486&#34;&gt;Doze&lt;/h2&gt;
+
+&lt;p&gt;如果用户手机未充电并且屏幕关闭一段时间以后，设备将进入休眠模式。在休眠状态下，系统将通过以下两种方式来节省电量：&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;限制app访问网络&lt;/li&gt;
+&lt;li&gt;限制大量占用Cpu的Service&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;并且阻止APP访问网络，推迟APP的任务，同步和标准闹钟。&lt;/p&gt;
+
+&lt;p&gt;在该模式下，系统周期性的退出休眠状态一小段时间使得app能完成他们推迟的工作。见下图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/optimizeUi/doze.png&#34; alt=&#34;doze&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;见上图，系统周期的退出Doze模式，来呼起延迟的操作.
+当用户移动设备，打开屏幕或则连接电源唤醒设备以后，系统将退出休眠模式并且所有app将会进入正常活动状态。&lt;/p&gt;
+
+&lt;h3 id=&#34;doze-restrictions:ae9920511987a07389ba2d8a27b5e486&#34;&gt;Doze restrictions&lt;/h3&gt;
+
+&lt;p&gt;休眠模式下，将会限制以下你的app操作：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;网络访问将会挂起&lt;/li&gt;
+&lt;li&gt;系统将会忽略 wake lock&lt;/li&gt;
+&lt;li&gt;标准的AlarmManager(setExact()和setWindow（））)将会推迟到下一个maintenance window.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;如果你在休眠状态下需要alarms 可以使用setAndAllowWhileIdle()或则setExactAndAllowWhileIdel（）方法。&lt;/p&gt;
+
+&lt;p&gt;用setAlarmClock()的闹钟不受影响-系统会短暂的退出休眠模式来唤起这个闹钟&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;ul&gt;
+&lt;li&gt;系统不再扫描Wi_Fi&lt;/li&gt;
+&lt;li&gt;系统不允许sync adapter运行&lt;/li&gt;
+&lt;li&gt;系统不允许JobScheduler运行&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;适配你的app到doze状态:ae9920511987a07389ba2d8a27b5e486&#34;&gt;适配你的app到Doze状态&lt;/h3&gt;
+
+&lt;p&gt;取决于你用的特性和服务，Doze对App的影响是不同的，如果你用了上述的一些功能，那么你需要调整你得App。&lt;/p&gt;
+
+&lt;p&gt;对使用AlarmManager的App，6.0引入了两个新的方法：&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;setAndAllowWhileIdle()
+setExactAndAllowWhileIdle().
+但是就算加了这两个方法,每15分钟闹钟服务只能允许呼起一次&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;那么对于我们这种实时消息（IM）开发的将是一个噩耗，那么Google推荐的方式是使用&lt;strong&gt;GCM&lt;/strong&gt; ，我们木有啊，木有啊，所以我觉得6.0在国内暂时还需要一段时间。&lt;/p&gt;
+
+&lt;h2 id=&#34;app-standby:ae9920511987a07389ba2d8a27b5e486&#34;&gt;App Standby&lt;/h2&gt;
+
+&lt;p&gt;当用户没有和一个App交互的时候，系统将会决定这个app是否是非活跃状态，这就是App Standby.当用户一段时间内没有点击app并且没有以下的这些条件的时候，系统将会决定是否进入挂起状态。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;用户显示的启动了app&lt;/li&gt;
+&lt;li&gt;app当前在前台有任务在处理&lt;/li&gt;
+&lt;li&gt;app产生了一条通知&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;当用户插上电源以后，系统将会释放app的挂起状态，这时候允许app自由的访问网络，执行等待的jobs和syncs。如果设备长时间处于非活跃状态，系统只允许这些app一天访问一次网络。&lt;/p&gt;
+
+&lt;h3 id=&#34;所以我们只能使用gcm有木有-有木有-国内木有有木有-咋个办-我还不知道:ae9920511987a07389ba2d8a27b5e486&#34;&gt;所以我们只能使用GCM有木有？有木有？国内木有有木有？咋个办？我还不知道&amp;hellip;..&lt;/h3&gt;
+
+&lt;p&gt;这个问题只能等待国内厂商解决了!&lt;/p&gt;
+
+&lt;h3 id=&#34;白名单:ae9920511987a07389ba2d8a27b5e486&#34;&gt;白名单&lt;/h3&gt;
+
+&lt;p&gt;用户可以在电源管理里面把app加入白名单。&lt;/p&gt;
+
+&lt;h2 id=&#34;模拟doze状态测试app:ae9920511987a07389ba2d8a27b5e486&#34;&gt;模拟Doze状态测试app&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;找一个6.0以上的手机或则虚拟机&lt;/li&gt;
+&lt;li&gt;连接设备到你的开发机并安装你的应用&lt;/li&gt;
+&lt;li&gt;打开你得应用&lt;/li&gt;
+&lt;li&gt;关掉屏幕（app还处于活跃状态）&lt;/li&gt;
+&lt;li&gt;运行以下命令强制系统进入Doze状态&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code&gt;   $ adb shell dumpsys battery unplug
+   $ adb shell dumpsys deviceidle step
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;你可能需要运行第二行命令多次，重复直至设备进入休眠状态&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;观察APP状态，然后填坑吧&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h2 id=&#34;模拟app-standby测试app:ae9920511987a07389ba2d8a27b5e486&#34;&gt;模拟app standby测试app&lt;/h2&gt;
+
+&lt;ol&gt;
+&lt;li&gt;找一个6.0以上的手机或则虚拟机&lt;/li&gt;
+&lt;li&gt;连接设备到你的开发机并安装你的应用&lt;/li&gt;
+&lt;li&gt;打开你得应用&lt;/li&gt;
+&lt;li&gt;运行以下命令强制系统进入app stanby状态&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code&gt;   $ adb shell dumpsys battery unplug
+   $ adb shell am set-inactive &amp;lt;packageName&amp;gt; true
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;运行以下命令模拟唤醒你得app&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;pre&gt;&lt;code&gt;   $ adb shell am set-inactive &amp;lt;packageName&amp;gt; false
+   $ adb shell am get-inactive &amp;lt;packageName&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;观察你得app，填坑吧。（主要观察你得后台服务是否还正常）&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;Android 6.0 改成这种电源管理模式以后，相当于强制我们使用GCM，国内目前GCM没有，不知道华为，小米等厂商怎么来使用6.0。最后还是希望明年Google部分服务回归吧，不然没法玩&amp;hellip;&amp;mdash;-一个写了两年IM的Android程序猿的独白&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>浅析ListView实现原理</title>
