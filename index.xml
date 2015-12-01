@@ -6,8 +6,174 @@
     <description>Recent content on 骆二胖的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 30 Nov 2015 17:54:12 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 01 Dec 2015 14:54:30 +0800</lastBuildDate>
     <atom:link href="http://lorcanluo.github.io/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>UniversalImageLoader中的LruMemoryCache</title>
+      <link>http://lorcanluo.github.io/post/UniversalImageLoader%E4%B8%AD%E7%9A%84LruMemoryCache/</link>
+      <pubDate>Tue, 01 Dec 2015 14:54:30 +0800</pubDate>
+      
+      <guid>http://lorcanluo.github.io/post/UniversalImageLoader%E4%B8%AD%E7%9A%84LruMemoryCache/</guid>
+      <description>
+
+&lt;p&gt;在UniversalImageLoader中缓存在内存中的数据就使用了LruCache类，叫LruMemoryCache，存在内存中的图片就是放在该类中了，想想早年我们用软引用的方式保存，也是弱爆了&amp;hellip;&lt;/p&gt;
+
+&lt;h2 id=&#34;lru:5426630547b6f65ea3d8109cd3c5804a&#34;&gt;Lru&lt;/h2&gt;
+
+&lt;p&gt;Lru（Least recently used，最近最少使用）是一个缓存淘汰算法的简写，如果数据长时间没有被访问，那么缓存数据容量满的的时候，将会淘汰最少使用的数据。 我们直接看LruMemoryCache的代码。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;/**
+ * A cache that holds strong references to a limited number of Bitmaps. Each time a Bitmap is accessed, it is moved to
+ * the head of a queue. When a Bitmap is added to a full cache, the Bitmap at the end of that queue is evicted and may
+ * become eligible for garbage collection.&amp;lt;br /&amp;gt;
+ * &amp;lt;br /&amp;gt;
+ * &amp;lt;b&amp;gt;NOTE:&amp;lt;/b&amp;gt; This cache uses only strong references for stored Bitmaps.
+ *
+ * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
+ * @since 1.8.1
+ */
+public class LruMemoryCache implements MemoryCache {
+
+   //LinkedHashMap accessOrder设为true以后，最近访问的数据将会被放到前面，
+	private final LinkedHashMap&amp;lt;String, Bitmap&amp;gt; map;
+
+	private final int maxSize;
+	/** Size of this cache in bytes */
+	private int size;
+
+	/** @param maxSize Maximum sum of the sizes of the Bitmaps in this cache */
+	public LruMemoryCache(int maxSize) {
+		if (maxSize &amp;lt;= 0) {
+			throw new IllegalArgumentException(&amp;quot;maxSize &amp;lt;= 0&amp;quot;);
+		}
+		
+		//maxSize universal分配的策略是分配给应用的内存的1/8
+		this.maxSize = maxSize;
+		
+		//设为true了
+		this.map = new LinkedHashMap&amp;lt;String, Bitmap&amp;gt;(0, 0.75f, true);
+	}
+
+	/**
+	 * Returns the Bitmap for {@code key} if it exists in the cache. If a Bitmap was returned, it is moved to the head
+	 * of the queue. This returns null if a Bitmap is not cached.
+	 */
+	@Override
+	public final Bitmap get(String key) {
+		if (key == null) {
+			throw new NullPointerException(&amp;quot;key == null&amp;quot;);
+		}
+
+     //LinkHashMap是非线程安全的，所以要自己同步，这里get以后，LinkedHashMap就会把数据放在最前面
+		synchronized (this) {
+			return map.get(key);
+		}
+	}
+
+	/** Caches {@code Bitmap} for {@code key}. The Bitmap is moved to the head of the queue. */
+	@Override
+	public final boolean put(String key, Bitmap value) {
+		if (key == null || value == null) {
+			throw new NullPointerException(&amp;quot;key == null || value == null&amp;quot;);
+		}
+
+		synchronized (this) {
+		   //加上当前的size
+			size += sizeOf(key, value);
+			Bitmap previous = map.put(key, value);
+			
+			//如果key存在，要减去以前的size
+			if (previous != null) {
+				size -= sizeOf(key, previous);
+			}
+		}
+
+      //清理缓存，如果超出最大值，则需要删除老的数据
+		trimToSize(maxSize);
+		return true;
+	}
+
+	/**
+	 * Remove the eldest entries until the total of remaining entries is at or below the requested size.
+	 *
+	 * @param maxSize the maximum size of the cache before returning. May be -1 to evict even 0-sized elements.
+	 */
+	private void trimToSize(int maxSize) {
+		while (true) {
+			String key;
+			Bitmap value;
+			synchronized (this) {
+				if (size &amp;lt; 0 || (map.isEmpty() &amp;amp;&amp;amp; size != 0)) {
+					throw new IllegalStateException(getClass().getName() + &amp;quot;.sizeOf() is reporting inconsistent results!&amp;quot;);
+				}
+
+				if (size &amp;lt;= maxSize || map.isEmpty()) {
+					break;
+				}
+				
+           //删除老的数据直至 size&amp;lt;maxSize
+				Map.Entry&amp;lt;String, Bitmap&amp;gt; toEvict = map.entrySet().iterator().next();
+				if (toEvict == null) {
+					break;
+				}
+				key = toEvict.getKey();
+				value = toEvict.getValue();
+				map.remove(key);
+				size -= sizeOf(key, value);
+			}
+		}
+	}
+
+	/** Removes the entry for {@code key} if it exists. */
+	@Override
+	public final Bitmap remove(String key) {
+		if (key == null) {
+			throw new NullPointerException(&amp;quot;key == null&amp;quot;);
+		}
+
+		synchronized (this) {
+			Bitmap previous = map.remove(key);
+			if (previous != null) {
+				size -= sizeOf(key, previous);
+			}
+			return previous;
+		}
+	}
+
+	@Override
+	public Collection&amp;lt;String&amp;gt; keys() {
+		synchronized (this) {
+			return new HashSet&amp;lt;String&amp;gt;(map.keySet());
+		}
+	}
+
+	@Override
+	public void clear() {
+		trimToSize(-1); // -1 will evict 0-sized elements
+	}
+
+	/**
+	 * Returns the size {@code Bitmap} in bytes.
+	 * &amp;lt;p/&amp;gt;
+	 * An entry&#39;s size must not change while it is in the cache.
+	 */
+	private int sizeOf(String key, Bitmap value) {
+		return value.getRowBytes() * value.getHeight();
+	}
+
+	@Override
+	public synchronized final String toString() {
+		return String.format(&amp;quot;LruCache[maxSize=%d]&amp;quot;, maxSize);
+	}
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;lrucache:5426630547b6f65ea3d8109cd3c5804a&#34;&gt;LruCache&lt;/h2&gt;
+
+&lt;p&gt;Android 4.0以后官方也引入了一个缓存类叫LruCache，可以直接在源码中找到该类，具体实现和上类似，只是这是一个泛型的实现，具体如果以后大家用的到，可以去源码中查询。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>android6.0电源管理方式</title>

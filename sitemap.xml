@@ -3,8 +3,13 @@
   
   <url>
     <loc>http://lorcanluo.github.io/</loc>
-    <lastmod>2015-11-30T17:54:12+08:00</lastmod>
+    <lastmod>2015-12-01T14:54:30+08:00</lastmod>
     <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>http://lorcanluo.github.io/post/UniversalImageLoader%E4%B8%AD%E7%9A%84LruMemoryCache/</loc>
+    <lastmod>2015-12-01T14:54:30+08:00</lastmod>
   </url>
   
   <url>
