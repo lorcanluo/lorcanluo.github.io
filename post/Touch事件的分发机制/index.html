@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Touch事件的分发机制</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="generator" content="Hugo 0.14" />
+  <link href="" rel="alternate" type="application/rss+xml" title="骆二胖的博客" />
+  <link href="http://lorcanluo.github.io//css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://lorcanluo.github.io//css/hc.css" rel="stylesheet">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  
+    
+    </head>
+    <body>
+<div class="nav-toggle"><i class="fa fa-bars fa-2x"></i> Herring Cove </div>
+      <div id = "wrapper">
+
+
+<div class="navbar navbar-default" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a href="http://lorcanluo.github.io//"><p class="navbar-brand">骆二胖的博客</p></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+					
+					
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+
+       
+       <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+					<img src="" />
+          <li class="sidebar-brand"><a href="http://lorcanluo.github.io//"><h1 class="brand">骆二胖的博客</h1></a><h3></h3></li>
+          <hr />
+					
+          <hr />
+          <div id="social-wrapper">
+           
+           
+           
+           
+         </div>
+       </ul>
+     </div>
+
+
+
+     <div class="container">
+
+
+  <div id="article">
+   <div class="article-title">Touch事件的分发机制</div>
+   <p class="meta"><small>&nbsp;<i class="fa fa-calendar-o"></i> 2015-12-03</small></p> <hr/>
+   <div class="post">
+     
+
+<p>网上很多用源码来分析touch事件机制的文章，但是由于View和ViewGroup事件分发和android系统事件分开有关系，所以看起来有点云里雾里的，下面自己写了一个例子来说嘛touch分发的原理，和我们工作中遇到此类问题应该怎么处理这类事件，首先说说ViewGroup和View下的三个相关的函数：</p>
+
+<ul>
+<li>View和ViewGroup下都实现了dispatchTouchEvent（），该方法用户touch事件的分发。</li>
+<li>View比ViewGroup多一个方法叫onTouchEvent（），该方法就是用于具体的touch事件处理。</li>
+<li>ViewGroup比View多一个方法叫onInterceptTouchEvent（），该方法用于拦截touch事件。</li>
+</ul>
+
+<p>接下来我们先看看源码中的官方说明：</p>
+
+<pre><code> /**
+     * Pass the touch screen motion event down to the target view, or this
+     * view if it is the target.
+     *
+     * @param event The motion event to be dispatched.
+     * @return True if the event was handled by the view, false otherwise.
+     */
+    public boolean dispatchTouchEvent(MotionEvent event) {
+    }
+</code></pre>
+
+<p>上面写的很清楚，分发事件到对应的view，这是View源码中的类，实际ViewGroup中的更复杂，他多了一个功能就是还要往子View分发事件。</p>
+
+<pre><code>/**
+     * Implement this method to handle touch screen motion events.
+     * &lt;p&gt;
+     * If this method is used to detect click actions, it is recommended that
+     * the actions be performed by implementing and calling
+     * {@link #performClick()}. This will ensure consistent system behavior,
+     * including:
+     * &lt;ul&gt;
+     * &lt;li&gt;obeying click sound preferences
+     * &lt;li&gt;dispatching OnClickListener calls
+     * &lt;li&gt;handling {@link AccessibilityNodeInfo#ACTION_CLICK ACTION_CLICK} when
+     * accessibility features are enabled
+     * &lt;/ul&gt;
+     *
+     * @param event The motion event.
+     * @return True if the event was handled, false otherwise.
+     */
+    public boolean onTouchEvent(MotionEvent event) {
+    }
+</code></pre>
+
+<p>上面这个方法就是我们经常用到的，具体对touch事件的处理。</p>
+
+<pre><code>  /**
+     * Implement this method to intercept all touch screen motion events.  This
+     * allows you to watch events as they are dispatched to your children, and
+     * take ownership of the current gesture at any point.
+     *
+     * &lt;p&gt;Using this function takes some care, as it has a fairly complicated
+     * interaction with {@link View#onTouchEvent(MotionEvent)
+     * View.onTouchEvent(MotionEvent)}, and using it requires implementing
+     * that method as well as this one in the correct way.  Events will be
+     * received in the following order:
+     *
+     * &lt;ol&gt;
+     * &lt;li&gt; You will receive the down event here.
+     * &lt;li&gt; The down event will be handled either by a child of this view
+     * group, or given to your own onTouchEvent() method to handle; this means
+     * you should implement onTouchEvent() to return true, so you will
+     * continue to see the rest of the gesture (instead of looking for
+     * a parent view to handle it).  Also, by returning true from
+     * onTouchEvent(), you will not receive any following
+     * events in onInterceptTouchEvent() and all touch processing must
+     * happen in onTouchEvent() like normal.
+     * &lt;li&gt; For as long as you return false from this function, each following
+     * event (up to and including the final up) will be delivered first here
+     * and then to the target's onTouchEvent().
+     * &lt;li&gt; If you return true from here, you will not receive any
+     * following events: the target view will receive the same event but
+     * with the action {@link MotionEvent#ACTION_CANCEL}, and all further
+     * events will be delivered to your onTouchEvent() method and no longer
+     * appear here.
+     * &lt;/ol&gt;
+     *
+     * @param ev The motion event being dispatched down the hierarchy.
+     * @return Return true to steal motion events from the children and have
+     * them dispatched to this ViewGroup through onTouchEvent().
+     * The current target will receive an ACTION_CANCEL event, and no further
+     * messages will be delivered here.
+     */
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return false;
+    }
+</code></pre>
+
+<p>上面这个函数可以看看应该，这个函数是用来拦截touch事件的，默认返回的是false，如果返回true，当前的View的dispatchTouchEvent（）和onTouchEvent（）还会运行，但是子View的相关函数将不再运行。</p>
+
+<h2 id="测试工程:457fc3a4f9a21adbc9d68d0ec7987901">测试工程</h2>
+
+<p>下面我用一个例子来说明这个问题，我建立了一个工程，自定义了三个MyLinearLayout，MyLinearLayout1，MyLinearLayout2类继承至LinearLayout,同样的代码如下，但是有三个：</p>
+
+<pre><code>public class MyLinearLayout extends LinearLayout {
+    public MyLinearLayout(Context context) {
+        super(context);
+    }
+
+    public MyLinearLayout(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public MyLinearLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        Log.d(&quot;MyLinearLayout&quot;, &quot;onInterceptTouchEvent&quot;);
+
+        return super.onInterceptTouchEvent(ev);
+    }
+
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        Log.d(&quot;MyLinearLayout&quot;, &quot;dispatchTouchEvent&quot;);
+
+
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.d(&quot;MyLinearLayout&quot;, &quot;onTouchEvent&quot;);
+
+        return super.onTouchEvent(event);
+    }
+}
+</code></pre>
+
+<p>还写了一个MyTextView类，继承于TextView，代码如下：</p>
+
+<pre><code>public class MyTestView extends TextView {
+    public MyTestView(Context context) {
+        super(context);
+    }
+
+    public MyTestView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public MyTestView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        Log.d(&quot;MyTestView&quot;, &quot;dispatchTouchEvent&quot;);
+
+        return super.dispatchTouchEvent(event);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.d(&quot;MyTestView&quot;, &quot;onTouchEvent&quot;);
+
+        return super.onTouchEvent(event);
+    }
+
+
+}
+</code></pre>
+
+<p>我的布局代码代码如下：</p>
+
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+&lt;RelativeLayout xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;
+    xmlns:tools=&quot;http://schemas.android.com/tools&quot;
+    android:layout_width=&quot;match_parent&quot;
+    android:layout_height=&quot;match_parent&quot;
+    android:paddingBottom=&quot;@dimen/activity_vertical_margin&quot;
+    android:paddingLeft=&quot;@dimen/activity_horizontal_margin&quot;
+    android:paddingRight=&quot;@dimen/activity_horizontal_margin&quot;
+    android:paddingTop=&quot;@dimen/activity_vertical_margin&quot;
+    tools:context=&quot;github.lorcanluo.testdispatch.MainActivity&quot;&gt;
+
+    &lt;github.lorcanluo.testdispatch.MyLinearLayout
+        android:layout_width=&quot;match_parent&quot;
+        android:layout_height=&quot;500dp&quot;
+        android:background=&quot;#ff0000&quot;
+        android:padding=&quot;20dp&quot;&gt;
+
+        &lt;github.lorcanluo.testdispatch.MyLinearLayout1
+            android:layout_width=&quot;match_parent&quot;
+            android:layout_height=&quot;match_parent&quot;
+            android:background=&quot;#00ff00&quot;
+            android:padding=&quot;30dp&quot;&gt;
+
+            &lt;github.lorcanluo.testdispatch.MyLinearLayout2
+                android:layout_width=&quot;match_parent&quot;
+                android:layout_height=&quot;match_parent&quot;
+                android:gravity=&quot;center&quot;
+                android:background=&quot;#0000ff&quot;&gt;
+
+                &lt;github.lorcanluo.testdispatch.MyTestView
+                    android:layout_width=&quot;100dp&quot;
+                    android:layout_height=&quot;100dp&quot;
+                    android:gravity=&quot;center&quot;
+                    android:background=&quot;#ffffff&quot;
+                    android:text=&quot;我就是小打杂&quot; /&gt;
+
+            &lt;/github.lorcanluo.testdispatch.MyLinearLayout2&gt;
+
+        &lt;/github.lorcanluo.testdispatch.MyLinearLayout1&gt;
+
+
+    &lt;/github.lorcanluo.testdispatch.MyLinearLayout&gt;
+
+&lt;/RelativeLayout&gt;
+
+</code></pre>
+
+<p>布局出来的效果如图：</p>
+
+<p><img src="https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/dispatch_phone.png" alt="phone" /></p>
+
+<p>接下来我们来使用不同的操作，来输出日志，首先看一下什么都没改的日志输出如下：</p>
+
+<p><img src="https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/normal.png" alt="phone" /></p>
+
+<h3 id="mytextview的ontouchevent中返回true:457fc3a4f9a21adbc9d68d0ec7987901">MyTextView的onTouchEvent中返回true</h3>
+
+<pre><code>    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.d(&quot;MyTestView&quot;, &quot;onTouchEvent&quot;);
+
+        return true;
+    }
+</code></pre>
+
+<p>那么输出如下：</p>
+
+<p><img src="https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/mytextview_ontouch_return_true.png" alt="phone" /></p>
+
+<p>我们可以看到日志中，只有MyTextView的onTouchEvent()事件了，这表示事件已经被我们消耗了，父类不用再处理onTouchEvent（）事件了,如果这里你手动返回false的话，那么父类的onTouchEvent()事件还是会响应的。</p>
+
+<h3 id="mytextview的dispatchtouchevent-中返回true:457fc3a4f9a21adbc9d68d0ec7987901">MyTextView的dispatchTouchEvent（）中返回true</h3>
+
+<pre><code>    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        Log.d(&quot;MyTestView&quot;, &quot;dispatchTouchEvent&quot;);
+
+        return true;
+    }
+
+</code></pre>
+
+<p>dispatchTouchEvent（）函数中返回true以后，表示事件已经被&rdquo;消耗&rdquo;,那么所有相关的onTouchEvent（）将不再输出，所以我们得出的输出结果如下:</p>
+
+<p><img src="https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/view_dispatch_return_true.png" alt="phone" /></p>
+
+<p>如果父类的dispatchTouchEvent（）返回true之后，<strong>本类和父view的onTouchEvent（）事件不再调用，子类的所有touch事件不再调用</strong>，这和接下来的onInterceptTouchEvent（）还是有区别，需要细心分别。</p>
+
+<h3 id="mylinearlayout1的onintercepttouchevent-中返回true:457fc3a4f9a21adbc9d68d0ec7987901">MyLinearLayout1的onInterceptTouchEvent（）中返回true</h3>
+
+<pre><code>    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        Log.d(&quot;MyLinearLayout1&quot;, &quot;onInterceptTouchEvent&quot;);
+
+
+        return true;
+    }
+
+</code></pre>
+
+<p>事件被拦截以后，子view的相关touch事件将不再调用，<strong>但是本类和父类事件还是要调用的</strong>，这里和上面dispatchTouchEvent（）还是有差别，需要仔细区分，我们的输出如下:</p>
+
+<p><img src="https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/layout1_intercept_return_true.png" alt="phone" /></p>
+
+<h2 id="日常处理touch冲突的常用办法:457fc3a4f9a21adbc9d68d0ec7987901">日常处理Touch冲突的常用办法</h2>
+
+<p>在日常工作中，我们还是有可能遇到touch事件冲突的问题的，那么有了上面的知识，我们可以通过以上函数处理的组合来处理事件冲突。</p>
+
+<ol>
+<li>如果我们想阻断子View对touch事件的处理，我们可以通过onInterceptTouchEvent（）方法来进行判断是否阻断</li>
+<li>如果我们想让父类不再处理onTouchEvent（）事件，我们可以通过在onTouchEvent（）中返回true来进行</li>
+</ol>
+
+<p>但是还可能有更为复杂的情况，这就需要大家去动态的算法处理了。。。。</p>
+
+<p>本文的例子放在了：<a href="https://github.com/lorcanluo/testDispatchTouchEvent">https://github.com/lorcanluo/testDispatchTouchEvent</a></p>
+
+   </div>
+ </div>
+
+
+ <a href="https://twitter.com/share" class="twitter-share-button " data-size="small" data-count="none">Tweet</a>
+ <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+ <ul class="pager">
+     
+      &nbsp;<li class="next"><a href="http://lorcanluo.github.io/post/UniversalImageLoader%E4%B8%AD%E7%9A%84LruMemoryCache/"> UniversalImageLoader中的LruMemoryCache</a></li>
+</ul>
+
+
+
+    </ul>
+    </div>
+    <footer>
+
+        <p class="text-muted credit">&copy; . All rights reserved. </p>
+    </footer>
+ 
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/js/hc.js"></script>
+</body>
+
+</html>
+

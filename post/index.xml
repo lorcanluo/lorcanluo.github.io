@@ -6,8 +6,302 @@
     <description>Recent content in Posts on 骆二胖的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Tue, 01 Dec 2015 14:54:30 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 03 Dec 2015 16:27:25 +0800</lastBuildDate>
     <atom:link href="http://lorcanluo.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Touch事件的分发机制</title>
+      <link>http://lorcanluo.github.io/post/Touch%E4%BA%8B%E4%BB%B6%E7%9A%84%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6/</link>
+      <pubDate>Thu, 03 Dec 2015 16:27:25 +0800</pubDate>
+      
+      <guid>http://lorcanluo.github.io/post/Touch%E4%BA%8B%E4%BB%B6%E7%9A%84%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6/</guid>
+      <description>
+
+&lt;p&gt;网上很多用源码来分析touch事件机制的文章，但是由于View和ViewGroup事件分发和android系统事件分开有关系，所以看起来有点云里雾里的，下面自己写了一个例子来说嘛touch分发的原理，和我们工作中遇到此类问题应该怎么处理这类事件，首先说说ViewGroup和View下的三个相关的函数：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;View和ViewGroup下都实现了dispatchTouchEvent（），该方法用户touch事件的分发。&lt;/li&gt;
+&lt;li&gt;View比ViewGroup多一个方法叫onTouchEvent（），该方法就是用于具体的touch事件处理。&lt;/li&gt;
+&lt;li&gt;ViewGroup比View多一个方法叫onInterceptTouchEvent（），该方法用于拦截touch事件。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;接下来我们先看看源码中的官方说明：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt; /**
+     * Pass the touch screen motion event down to the target view, or this
+     * view if it is the target.
+     *
+     * @param event The motion event to be dispatched.
+     * @return True if the event was handled by the view, false otherwise.
+     */
+    public boolean dispatchTouchEvent(MotionEvent event) {
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面写的很清楚，分发事件到对应的view，这是View源码中的类，实际ViewGroup中的更复杂，他多了一个功能就是还要往子View分发事件。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;/**
+     * Implement this method to handle touch screen motion events.
+     * &amp;lt;p&amp;gt;
+     * If this method is used to detect click actions, it is recommended that
+     * the actions be performed by implementing and calling
+     * {@link #performClick()}. This will ensure consistent system behavior,
+     * including:
+     * &amp;lt;ul&amp;gt;
+     * &amp;lt;li&amp;gt;obeying click sound preferences
+     * &amp;lt;li&amp;gt;dispatching OnClickListener calls
+     * &amp;lt;li&amp;gt;handling {@link AccessibilityNodeInfo#ACTION_CLICK ACTION_CLICK} when
+     * accessibility features are enabled
+     * &amp;lt;/ul&amp;gt;
+     *
+     * @param event The motion event.
+     * @return True if the event was handled, false otherwise.
+     */
+    public boolean onTouchEvent(MotionEvent event) {
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面这个方法就是我们经常用到的，具体对touch事件的处理。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;  /**
+     * Implement this method to intercept all touch screen motion events.  This
+     * allows you to watch events as they are dispatched to your children, and
+     * take ownership of the current gesture at any point.
+     *
+     * &amp;lt;p&amp;gt;Using this function takes some care, as it has a fairly complicated
+     * interaction with {@link View#onTouchEvent(MotionEvent)
+     * View.onTouchEvent(MotionEvent)}, and using it requires implementing
+     * that method as well as this one in the correct way.  Events will be
+     * received in the following order:
+     *
+     * &amp;lt;ol&amp;gt;
+     * &amp;lt;li&amp;gt; You will receive the down event here.
+     * &amp;lt;li&amp;gt; The down event will be handled either by a child of this view
+     * group, or given to your own onTouchEvent() method to handle; this means
+     * you should implement onTouchEvent() to return true, so you will
+     * continue to see the rest of the gesture (instead of looking for
+     * a parent view to handle it).  Also, by returning true from
+     * onTouchEvent(), you will not receive any following
+     * events in onInterceptTouchEvent() and all touch processing must
+     * happen in onTouchEvent() like normal.
+     * &amp;lt;li&amp;gt; For as long as you return false from this function, each following
+     * event (up to and including the final up) will be delivered first here
+     * and then to the target&#39;s onTouchEvent().
+     * &amp;lt;li&amp;gt; If you return true from here, you will not receive any
+     * following events: the target view will receive the same event but
+     * with the action {@link MotionEvent#ACTION_CANCEL}, and all further
+     * events will be delivered to your onTouchEvent() method and no longer
+     * appear here.
+     * &amp;lt;/ol&amp;gt;
+     *
+     * @param ev The motion event being dispatched down the hierarchy.
+     * @return Return true to steal motion events from the children and have
+     * them dispatched to this ViewGroup through onTouchEvent().
+     * The current target will receive an ACTION_CANCEL event, and no further
+     * messages will be delivered here.
+     */
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return false;
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面这个函数可以看看应该，这个函数是用来拦截touch事件的，默认返回的是false，如果返回true，当前的View的dispatchTouchEvent（）和onTouchEvent（）还会运行，但是子View的相关函数将不再运行。&lt;/p&gt;
+
+&lt;h2 id=&#34;测试工程:457fc3a4f9a21adbc9d68d0ec7987901&#34;&gt;测试工程&lt;/h2&gt;
+
+&lt;p&gt;下面我用一个例子来说明这个问题，我建立了一个工程，自定义了三个MyLinearLayout，MyLinearLayout1，MyLinearLayout2类继承至LinearLayout,同样的代码如下，但是有三个：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;public class MyLinearLayout extends LinearLayout {
+    public MyLinearLayout(Context context) {
+        super(context);
+    }
+
+    public MyLinearLayout(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public MyLinearLayout(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        Log.d(&amp;quot;MyLinearLayout&amp;quot;, &amp;quot;onInterceptTouchEvent&amp;quot;);
+
+        return super.onInterceptTouchEvent(ev);
+    }
+
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        Log.d(&amp;quot;MyLinearLayout&amp;quot;, &amp;quot;dispatchTouchEvent&amp;quot;);
+
+
+        return super.dispatchTouchEvent(ev);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.d(&amp;quot;MyLinearLayout&amp;quot;, &amp;quot;onTouchEvent&amp;quot;);
+
+        return super.onTouchEvent(event);
+    }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;还写了一个MyTextView类，继承于TextView，代码如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;public class MyTestView extends TextView {
+    public MyTestView(Context context) {
+        super(context);
+    }
+
+    public MyTestView(Context context, AttributeSet attrs) {
+        super(context, attrs);
+    }
+
+    public MyTestView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        Log.d(&amp;quot;MyTestView&amp;quot;, &amp;quot;dispatchTouchEvent&amp;quot;);
+
+        return super.dispatchTouchEvent(event);
+    }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.d(&amp;quot;MyTestView&amp;quot;, &amp;quot;onTouchEvent&amp;quot;);
+
+        return super.onTouchEvent(event);
+    }
+
+
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我的布局代码代码如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;utf-8&amp;quot;?&amp;gt;
+&amp;lt;RelativeLayout xmlns:android=&amp;quot;http://schemas.android.com/apk/res/android&amp;quot;
+    xmlns:tools=&amp;quot;http://schemas.android.com/tools&amp;quot;
+    android:layout_width=&amp;quot;match_parent&amp;quot;
+    android:layout_height=&amp;quot;match_parent&amp;quot;
+    android:paddingBottom=&amp;quot;@dimen/activity_vertical_margin&amp;quot;
+    android:paddingLeft=&amp;quot;@dimen/activity_horizontal_margin&amp;quot;
+    android:paddingRight=&amp;quot;@dimen/activity_horizontal_margin&amp;quot;
+    android:paddingTop=&amp;quot;@dimen/activity_vertical_margin&amp;quot;
+    tools:context=&amp;quot;github.lorcanluo.testdispatch.MainActivity&amp;quot;&amp;gt;
+
+    &amp;lt;github.lorcanluo.testdispatch.MyLinearLayout
+        android:layout_width=&amp;quot;match_parent&amp;quot;
+        android:layout_height=&amp;quot;500dp&amp;quot;
+        android:background=&amp;quot;#ff0000&amp;quot;
+        android:padding=&amp;quot;20dp&amp;quot;&amp;gt;
+
+        &amp;lt;github.lorcanluo.testdispatch.MyLinearLayout1
+            android:layout_width=&amp;quot;match_parent&amp;quot;
+            android:layout_height=&amp;quot;match_parent&amp;quot;
+            android:background=&amp;quot;#00ff00&amp;quot;
+            android:padding=&amp;quot;30dp&amp;quot;&amp;gt;
+
+            &amp;lt;github.lorcanluo.testdispatch.MyLinearLayout2
+                android:layout_width=&amp;quot;match_parent&amp;quot;
+                android:layout_height=&amp;quot;match_parent&amp;quot;
+                android:gravity=&amp;quot;center&amp;quot;
+                android:background=&amp;quot;#0000ff&amp;quot;&amp;gt;
+
+                &amp;lt;github.lorcanluo.testdispatch.MyTestView
+                    android:layout_width=&amp;quot;100dp&amp;quot;
+                    android:layout_height=&amp;quot;100dp&amp;quot;
+                    android:gravity=&amp;quot;center&amp;quot;
+                    android:background=&amp;quot;#ffffff&amp;quot;
+                    android:text=&amp;quot;我就是小打杂&amp;quot; /&amp;gt;
+
+            &amp;lt;/github.lorcanluo.testdispatch.MyLinearLayout2&amp;gt;
+
+        &amp;lt;/github.lorcanluo.testdispatch.MyLinearLayout1&amp;gt;
+
+
+    &amp;lt;/github.lorcanluo.testdispatch.MyLinearLayout&amp;gt;
+
+&amp;lt;/RelativeLayout&amp;gt;
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;布局出来的效果如图：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/dispatch_phone.png&#34; alt=&#34;phone&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;接下来我们来使用不同的操作，来输出日志，首先看一下什么都没改的日志输出如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/normal.png&#34; alt=&#34;phone&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;mytextview的ontouchevent中返回true:457fc3a4f9a21adbc9d68d0ec7987901&#34;&gt;MyTextView的onTouchEvent中返回true&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        Log.d(&amp;quot;MyTestView&amp;quot;, &amp;quot;onTouchEvent&amp;quot;);
+
+        return true;
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;那么输出如下：&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/mytextview_ontouch_return_true.png&#34; alt=&#34;phone&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;我们可以看到日志中，只有MyTextView的onTouchEvent()事件了，这表示事件已经被我们消耗了，父类不用再处理onTouchEvent（）事件了,如果这里你手动返回false的话，那么父类的onTouchEvent()事件还是会响应的。&lt;/p&gt;
+
+&lt;h3 id=&#34;mytextview的dispatchtouchevent-中返回true:457fc3a4f9a21adbc9d68d0ec7987901&#34;&gt;MyTextView的dispatchTouchEvent（）中返回true&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        Log.d(&amp;quot;MyTestView&amp;quot;, &amp;quot;dispatchTouchEvent&amp;quot;);
+
+        return true;
+    }
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;dispatchTouchEvent（）函数中返回true以后，表示事件已经被&amp;rdquo;消耗&amp;rdquo;,那么所有相关的onTouchEvent（）将不再输出，所以我们得出的输出结果如下:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/view_dispatch_return_true.png&#34; alt=&#34;phone&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;如果父类的dispatchTouchEvent（）返回true之后，&lt;strong&gt;本类和父view的onTouchEvent（）事件不再调用，子类的所有touch事件不再调用&lt;/strong&gt;，这和接下来的onInterceptTouchEvent（）还是有区别，需要细心分别。&lt;/p&gt;
+
+&lt;h3 id=&#34;mylinearlayout1的onintercepttouchevent-中返回true:457fc3a4f9a21adbc9d68d0ec7987901&#34;&gt;MyLinearLayout1的onInterceptTouchEvent（）中返回true&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        Log.d(&amp;quot;MyLinearLayout1&amp;quot;, &amp;quot;onInterceptTouchEvent&amp;quot;);
+
+
+        return true;
+    }
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;事件被拦截以后，子view的相关touch事件将不再调用，&lt;strong&gt;但是本类和父类事件还是要调用的&lt;/strong&gt;，这里和上面dispatchTouchEvent（）还是有差别，需要仔细区分，我们的输出如下:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;https://raw.githubusercontent.com/lorcanluo/myHugoProject/master/myImage/touch/layout1_intercept_return_true.png&#34; alt=&#34;phone&#34; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;日常处理touch冲突的常用办法:457fc3a4f9a21adbc9d68d0ec7987901&#34;&gt;日常处理Touch冲突的常用办法&lt;/h2&gt;
+
+&lt;p&gt;在日常工作中，我们还是有可能遇到touch事件冲突的问题的，那么有了上面的知识，我们可以通过以上函数处理的组合来处理事件冲突。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;如果我们想阻断子View对touch事件的处理，我们可以通过onInterceptTouchEvent（）方法来进行判断是否阻断&lt;/li&gt;
+&lt;li&gt;如果我们想让父类不再处理onTouchEvent（）事件，我们可以通过在onTouchEvent（）中返回true来进行&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;但是还可能有更为复杂的情况，这就需要大家去动态的算法处理了。。。。&lt;/p&gt;
+
+&lt;p&gt;本文的例子放在了：&lt;a href=&#34;https://github.com/lorcanluo/testDispatchTouchEvent&#34;&gt;https://github.com/lorcanluo/testDispatchTouchEvent&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>UniversalImageLoader中的LruMemoryCache</title>
@@ -280,11 +574,8 @@ public class LruMemoryCache implements MemoryCache {
    $ adb shell dumpsys deviceidle step
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;你可能需要运行第二行命令多次，重复直至设备进入休眠状态&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;观察APP状态，然后填坑吧&lt;/li&gt;
-&lt;/ol&gt;
+&lt;p&gt;你可能需要运行第二行命令多次，重复直至设备进入休眠状态
+6. 观察APP状态，然后填坑吧&lt;/p&gt;
 
 &lt;h2 id=&#34;模拟app-standby测试app:ae9920511987a07389ba2d8a27b5e486&#34;&gt;模拟app standby测试app&lt;/h2&gt;
 
