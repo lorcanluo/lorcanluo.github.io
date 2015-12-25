@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Android本地日志工具</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="generator" content="Hugo 0.14" />
+  <link href="" rel="alternate" type="application/rss+xml" title="骆二胖的博客" />
+  <link href="http://lorcanluo.github.io//css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://lorcanluo.github.io//css/hc.css" rel="stylesheet">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  
+    
+    </head>
+    <body>
+<div class="nav-toggle"><i class="fa fa-bars fa-2x"></i> Herring Cove </div>
+      <div id = "wrapper">
+
+
+<div class="navbar navbar-default" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a href="http://lorcanluo.github.io//"><p class="navbar-brand">骆二胖的博客</p></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+					
+					
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+
+       
+       <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+					<img src="" />
+          <li class="sidebar-brand"><a href="http://lorcanluo.github.io//"><h1 class="brand">骆二胖的博客</h1></a><h3></h3></li>
+          <hr />
+					
+          <hr />
+          <div id="social-wrapper">
+           
+           
+           
+           
+         </div>
+       </ul>
+     </div>
+
+
+
+     <div class="container">
+
+
+  <div id="article">
+   <div class="article-title">Android本地日志工具</div>
+   <p class="meta"><small>&nbsp;<i class="fa fa-calendar-o"></i> 2015-12-25</small></p> <hr/>
+   <div class="post">
+     
+
+<p>在日常开发过程中，一些后台服务，比如IM，后台定时任务，都需要一套本地日志系统来监控程序是否正常，Android本身提供的日志系统只能在终端显示，为了模拟一套和android Log系统相同的环境，我自己写了一套本地日志系统来解决以上问题。</p>
+
+<p>为了能让不同等级的日志以不同的颜色显示，我用html的方式来实现，这样我们通过浏览器打开就可以了。
+github地址: <a href="https://github.com/lorcanluo/LogHtml">https://github.com/lorcanluo/LogHtml</a></p>
+
+<p>##使用方法</p>
+
+<p>在你的Application或则主Activity调用：</p>
+
+<pre><code>LogHtml.init(this.getPackageName());
+</code></pre>
+
+<p>方法来初始化，传入参数为你需要存放文件的目录。</p>
+
+<p>目前支持三种级别的日志：</p>
+
+<h3 id="普通消息:78090566b070caf4663a3c7d0c86897f">普通消息</h3>
+
+<p>在文件中以黑色字体显示</p>
+
+<p>调用方法：</p>
+
+<pre><code>   /**
+     * info log
+     *
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *            the class or activity where the log call occurs.
+     * @param msg The message you would like logged.
+     */
+    public static void i(String tag, String msg) {
+
+    }
+</code></pre>
+
+<h3 id="调试信息:78090566b070caf4663a3c7d0c86897f">调试信息</h3>
+
+<p>在文件中以绿色字体显示</p>
+
+<p>调用方式:</p>
+
+<pre><code>/**
+     * debug log
+     *
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *            the class or activity where the log call occurs.
+     * @param msg The message you would like logged.
+     */
+    public static void d(String tag, String msg) {
+     
+    }
+</code></pre>
+
+<h3 id="错误信息:78090566b070caf4663a3c7d0c86897f">错误信息</h3>
+
+<p>在文件中以红色字体显示</p>
+
+<p>调用方法：</p>
+
+<pre><code>    /**
+     * error log
+     *
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *            the class or activity where the log call occurs.
+     * @param msg The message you would like logged.
+     */
+    public static void e(String tag, String msg) {
+
+    }
+
+</code></pre>
+
+<h3 id="关闭日志:78090566b070caf4663a3c7d0c86897f">关闭日志</h3>
+
+<p>如果你不想在正式环境输出日志，可以调用以下方法来屏蔽日志输出：</p>
+
+<pre><code>/**
+ * open or close the function
+ *
+ * @param isDebuggable if set to false, not print the message.
+ */
+ public static void setIsDebuggable(boolean isDebuggable)()
+</code></pre>
+
+<p>##问题
+有什么问题，可以直接提交issus
+或则联系我 email <a href="mailto:763736665@qq.com">763736665@qq.com</a></p>
+
+   </div>
+ </div>
+
+
+ <a href="https://twitter.com/share" class="twitter-share-button " data-size="small" data-count="none">Tweet</a>
+ <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+ <ul class="pager">
+     
+      &nbsp;<li class="next"><a href="http://lorcanluo.github.io/post/Touch%E4%BA%8B%E4%BB%B6%E7%9A%84%E5%88%86%E5%8F%91%E6%9C%BA%E5%88%B6/"> Touch事件的分发机制</a></li>
+</ul>
+
+
+
+    </ul>
+    </div>
+    <footer>
+
+        <p class="text-muted credit">&copy; . All rights reserved. </p>
+    </footer>
+ 
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/js/hc.js"></script>
+</body>
+
+</html>
+

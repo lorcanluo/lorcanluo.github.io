@@ -6,8 +6,105 @@
     <description>Recent content in Posts on 骆二胖的博客</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 03 Dec 2015 16:27:25 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 25 Dec 2015 21:41:29 +0800</lastBuildDate>
     <atom:link href="http://lorcanluo.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Android本地日志工具</title>
+      <link>http://lorcanluo.github.io/post/Android%E6%9C%AC%E5%9C%B0%E6%97%A5%E5%BF%97%E5%B7%A5%E5%85%B7/</link>
+      <pubDate>Fri, 25 Dec 2015 21:41:29 +0800</pubDate>
+      
+      <guid>http://lorcanluo.github.io/post/Android%E6%9C%AC%E5%9C%B0%E6%97%A5%E5%BF%97%E5%B7%A5%E5%85%B7/</guid>
+      <description>
+
+&lt;p&gt;在日常开发过程中，一些后台服务，比如IM，后台定时任务，都需要一套本地日志系统来监控程序是否正常，Android本身提供的日志系统只能在终端显示，为了模拟一套和android Log系统相同的环境，我自己写了一套本地日志系统来解决以上问题。&lt;/p&gt;
+
+&lt;p&gt;为了能让不同等级的日志以不同的颜色显示，我用html的方式来实现，这样我们通过浏览器打开就可以了。
+github地址: &lt;a href=&#34;https://github.com/lorcanluo/LogHtml&#34;&gt;https://github.com/lorcanluo/LogHtml&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;##使用方法&lt;/p&gt;
+
+&lt;p&gt;在你的Application或则主Activity调用：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;LogHtml.init(this.getPackageName());
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;方法来初始化，传入参数为你需要存放文件的目录。&lt;/p&gt;
+
+&lt;p&gt;目前支持三种级别的日志：&lt;/p&gt;
+
+&lt;h3 id=&#34;普通消息:78090566b070caf4663a3c7d0c86897f&#34;&gt;普通消息&lt;/h3&gt;
+
+&lt;p&gt;在文件中以黑色字体显示&lt;/p&gt;
+
+&lt;p&gt;调用方法：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;   /**
+     * info log
+     *
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *            the class or activity where the log call occurs.
+     * @param msg The message you would like logged.
+     */
+    public static void i(String tag, String msg) {
+
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;调试信息:78090566b070caf4663a3c7d0c86897f&#34;&gt;调试信息&lt;/h3&gt;
+
+&lt;p&gt;在文件中以绿色字体显示&lt;/p&gt;
+
+&lt;p&gt;调用方式:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;/**
+     * debug log
+     *
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *            the class or activity where the log call occurs.
+     * @param msg The message you would like logged.
+     */
+    public static void d(String tag, String msg) {
+     
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;错误信息:78090566b070caf4663a3c7d0c86897f&#34;&gt;错误信息&lt;/h3&gt;
+
+&lt;p&gt;在文件中以红色字体显示&lt;/p&gt;
+
+&lt;p&gt;调用方法：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    /**
+     * error log
+     *
+     * @param tag Used to identify the source of a log message.  It usually identifies
+     *            the class or activity where the log call occurs.
+     * @param msg The message you would like logged.
+     */
+    public static void e(String tag, String msg) {
+
+    }
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;关闭日志:78090566b070caf4663a3c7d0c86897f&#34;&gt;关闭日志&lt;/h3&gt;
+
+&lt;p&gt;如果你不想在正式环境输出日志，可以调用以下方法来屏蔽日志输出：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;/**
+ * open or close the function
+ *
+ * @param isDebuggable if set to false, not print the message.
+ */
+ public static void setIsDebuggable(boolean isDebuggable)()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;##问题
+有什么问题，可以直接提交issus
+或则联系我 email &lt;a href=&#34;mailto:763736665@qq.com&#34;&gt;763736665@qq.com&lt;/a&gt;&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Touch事件的分发机制</title>
