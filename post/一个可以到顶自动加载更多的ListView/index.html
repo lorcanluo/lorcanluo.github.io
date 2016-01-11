@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>一个可以到顶自动加载更多的ListView</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="generator" content="Hugo 0.14" />
+  <link href="" rel="alternate" type="application/rss+xml" title="骆二胖的博客" />
+  <link href="http://lorcanluo.github.io//css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://lorcanluo.github.io//css/hc.css" rel="stylesheet">
+  <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+  
+    
+    </head>
+    <body>
+<div class="nav-toggle"><i class="fa fa-bars fa-2x"></i> Herring Cove </div>
+      <div id = "wrapper">
+
+
+<div class="navbar navbar-default" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a href="http://lorcanluo.github.io//"><p class="navbar-brand">骆二胖的博客</p></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+					
+					
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+
+       
+       <div id="sidebar-wrapper">
+        <ul class="sidebar-nav">
+					<img src="" />
+          <li class="sidebar-brand"><a href="http://lorcanluo.github.io//"><h1 class="brand">骆二胖的博客</h1></a><h3></h3></li>
+          <hr />
+					
+          <hr />
+          <div id="social-wrapper">
+           
+           
+           
+           
+         </div>
+       </ul>
+     </div>
+
+
+
+     <div class="container">
+
+
+  <div id="article">
+   <div class="article-title">一个可以到顶自动加载更多的ListView</div>
+   <p class="meta"><small>&nbsp;<i class="fa fa-calendar-o"></i> 2015-11-27</small></p> <hr/>
+   <div class="post">
+     
+
+<p>一个可以到顶自动加载更多的ListView，实现该控件的目的是用于im聊天页面场景，一些第三方实现的下拉加载更多也可以实现类似功能，但是由于他们实现的功能普遍比较复杂，效率相对较低，所以自己实现了该控件。</p>
+
+<p>Github 地址： <a href="https://github.com/lorcanluo/TopAutoRefreshListView">https://github.com/lorcanluo/TopAutoRefreshListView</a>,如果你觉得有用， 麻烦star一下</p>
+
+<h2 id="使用方法:0a067a8852473ff5d7517124caec92c5">使用方法</h2>
+
+<p>普通的使用方法和ListView一样，额外添加了两个方法</p>
+
+<h3 id="设置listener:0a067a8852473ff5d7517124caec92c5">设置Listener:</h3>
+
+<pre><code>       mListView.setOnTopRefreshListener(new TopAutoRefreshListView.OnTopRefreshListener() {
+            @Override
+            public void onTopRefresh() {
+                
+            }
+        });
+
+</code></pre>
+
+<p>你可以在onTopRefresh（）方法中，添加数据加载的方法.</p>
+
+<h3 id="停止刷新:0a067a8852473ff5d7517124caec92c5">停止刷新：</h3>
+
+<pre><code> mListView.onTopRefreshFinished();
+</code></pre>
+
+<h2 id="问题:0a067a8852473ff5d7517124caec92c5">问题</h2>
+
+<p>有什么问题，可以直接提交issus
+或则联系我 email <a href="mailto:763736665@qq.com">763736665@qq.com</a></p>
+
+   </div>
+ </div>
+
+
+ <a href="https://twitter.com/share" class="twitter-share-button " data-size="small" data-count="none">Tweet</a>
+ <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+
+ <ul class="pager">
+      &nbsp;<li class="previous"><a href="http://lorcanluo.github.io/post/%E8%B0%88%E8%B0%88%E6%BA%90%E7%A0%81%E4%B8%AD%E7%9A%84SparseArray/"> 谈谈源码中的SparseArray</a></li>
+      &nbsp;<li class="next"><a href="http://lorcanluo.github.io/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/"> Android界面优化</a></li>
+</ul>
+
+
+
+    </ul>
+    </div>
+    <footer>
+
+        <p class="text-muted credit">&copy; . All rights reserved. </p>
+    </footer>
+ 
+    <script src="/js/jquery-1.10.2.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+    <script src="/js/bootstrap.js"></script>
+    <script type="text/javascript" src="/js/hc.js"></script>
+</body>
+
+</html>
+
