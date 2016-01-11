@@ -1344,47 +1344,6 @@ public static class ViewHolder{
     </item>
     
     <item>
-      <title>一个可以到顶自动加载更多的ListView</title>
-      <link>http://lorcanluo.github.io/post/%E4%B8%80%E4%B8%AA%E5%8F%AF%E4%BB%A5%E5%88%B0%E9%A1%B6%E8%87%AA%E5%8A%A8%E5%8A%A0%E8%BD%BD%E6%9B%B4%E5%A4%9A%E7%9A%84ListView/</link>
-      <pubDate>Fri, 27 Nov 2015 18:43:17 +0800</pubDate>
-      
-      <guid>http://lorcanluo.github.io/post/%E4%B8%80%E4%B8%AA%E5%8F%AF%E4%BB%A5%E5%88%B0%E9%A1%B6%E8%87%AA%E5%8A%A8%E5%8A%A0%E8%BD%BD%E6%9B%B4%E5%A4%9A%E7%9A%84ListView/</guid>
-      <description>
-
-&lt;p&gt;一个可以到顶自动加载更多的ListView，实现该控件的目的是用于im聊天页面场景，一些第三方实现的下拉加载更多也可以实现类似功能，但是由于他们实现的功能普遍比较复杂，效率相对较低，所以自己实现了该控件。&lt;/p&gt;
-
-&lt;p&gt;Github 地址： &lt;a href=&#34;https://github.com/lorcanluo/TopAutoRefreshListView&#34;&gt;https://github.com/lorcanluo/TopAutoRefreshListView&lt;/a&gt;,如果你觉得有用， 麻烦star一下&lt;/p&gt;
-
-&lt;h2 id=&#34;使用方法:0a067a8852473ff5d7517124caec92c5&#34;&gt;使用方法&lt;/h2&gt;
-
-&lt;p&gt;普通的使用方法和ListView一样，额外添加了两个方法&lt;/p&gt;
-
-&lt;h3 id=&#34;设置listener:0a067a8852473ff5d7517124caec92c5&#34;&gt;设置Listener:&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt;       mListView.setOnTopRefreshListener(new TopAutoRefreshListView.OnTopRefreshListener() {
-            @Override
-            public void onTopRefresh() {
-                
-            }
-        });
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;你可以在onTopRefresh（）方法中，添加数据加载的方法.&lt;/p&gt;
-
-&lt;h3 id=&#34;停止刷新:0a067a8852473ff5d7517124caec92c5&#34;&gt;停止刷新：&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code&gt; mListView.onTopRefreshFinished();
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;问题:0a067a8852473ff5d7517124caec92c5&#34;&gt;问题&lt;/h2&gt;
-
-&lt;p&gt;有什么问题，可以直接提交issus
-或则联系我 email &lt;a href=&#34;mailto:763736665@qq.com&#34;&gt;763736665@qq.com&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
       <title>Android界面优化</title>
       <link>http://lorcanluo.github.io/post/Android%E7%95%8C%E9%9D%A2%E4%BC%98%E5%8C%96/</link>
       <pubDate>Wed, 28 Oct 2015 15:52:23 +0800</pubDate>
@@ -1501,6 +1460,47 @@ Android系统每隔&lt;strong&gt;16ms&lt;/strong&gt;发出&lt;strong&gt;VSYNC&lt
 &lt;/ol&gt;
 
 &lt;p&gt;你还可以使用&lt;strong&gt;&lt;em&gt;MAT&lt;/em&gt;&lt;/strong&gt;去分析你得代码等等，具体内存分析的问题下一次再来讨论。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>一个可以到顶自动加载更多的ListView</title>
+      <link>http://lorcanluo.github.io/post/%E4%B8%80%E4%B8%AA%E5%8F%AF%E4%BB%A5%E5%88%B0%E9%A1%B6%E8%87%AA%E5%8A%A8%E5%8A%A0%E8%BD%BD%E6%9B%B4%E5%A4%9A%E7%9A%84ListView/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      
+      <guid>http://lorcanluo.github.io/post/%E4%B8%80%E4%B8%AA%E5%8F%AF%E4%BB%A5%E5%88%B0%E9%A1%B6%E8%87%AA%E5%8A%A8%E5%8A%A0%E8%BD%BD%E6%9B%B4%E5%A4%9A%E7%9A%84ListView/</guid>
+      <description>
+
+&lt;p&gt;一个可以到顶自动加载更多的ListView，实现该控件的目的是用于im聊天页面场景，一些第三方实现的下拉加载更多也可以实现类似功能，但是由于他们实现的功能普遍比较复杂，效率相对较低，所以自己实现了该控件。&lt;/p&gt;
+
+&lt;p&gt;Github 地址： &lt;a href=&#34;https://github.com/lorcanluo/TopAutoRefreshListView&#34;&gt;https://github.com/lorcanluo/TopAutoRefreshListView&lt;/a&gt;,如果你觉得有用， 麻烦star一下&lt;/p&gt;
+
+&lt;h2 id=&#34;使用方法:0a067a8852473ff5d7517124caec92c5&#34;&gt;使用方法&lt;/h2&gt;
+
+&lt;p&gt;普通的使用方法和ListView一样，额外添加了两个方法&lt;/p&gt;
+
+&lt;h3 id=&#34;设置listener:0a067a8852473ff5d7517124caec92c5&#34;&gt;设置Listener:&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt;       mListView.setOnTopRefreshListener(new TopAutoRefreshListView.OnTopRefreshListener() {
+            @Override
+            public void onTopRefresh() {
+                
+            }
+        });
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;你可以在onTopRefresh（）方法中，添加数据加载的方法.&lt;/p&gt;
+
+&lt;h3 id=&#34;停止刷新:0a067a8852473ff5d7517124caec92c5&#34;&gt;停止刷新：&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code&gt; mListView.onTopRefreshFinished();
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;问题:0a067a8852473ff5d7517124caec92c5&#34;&gt;问题&lt;/h2&gt;
+
+&lt;p&gt;有什么问题，可以直接提交issus
+或则联系我 email &lt;a href=&#34;mailto:763736665@qq.com&#34;&gt;763736665@qq.com&lt;/a&gt;&lt;/p&gt;
 </description>
     </item>
     
